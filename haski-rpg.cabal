@@ -1,0 +1,30 @@
+cabal-version:       >=1.10
+name:                haski-rpg
+version:             0.1.0.0
+build-type:          Simple
+
+executable haski-rpg
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+
+  build-depends:
+      base >=4.7 && <5
+    , gloss
+    , gloss-rendering
+    , JuicyPixels
+    , containers
+    , mtl
+    , random
+    , bytestring
+    , vector
+  other-modules:
+      Types
+      Assets
+      GameState
+      WorldGen
+      Inventory
+      Combat
+      Input
+      Update
+      Render
