@@ -2,6 +2,7 @@
 module GameState where
 
 import Types
+import System.Random (StdGen)
 
 initPlayer :: Player
 initPlayer = Player
@@ -14,8 +15,8 @@ initPlayer = Player
   , pInventory = []
   }
 
-emptyState :: Assets -> TileMap -> GameState
-emptyState assets m = GameState
+emptyState :: Assets -> TileMap -> StdGen -> GameState
+emptyState assets m gen = GameState
   { gsPlayer  = initPlayer
   , gsEnemies =
       [ Enemy (  80,   -40) 40 20
@@ -27,4 +28,5 @@ emptyState assets m = GameState
   , gsFloor   = 0
   , gsAssets  = assets
   , gsKeys    = (False, False, False, False)
+  , gsRng     = gen  -- Almacenar generador para uso futuro
   }

@@ -41,13 +41,22 @@ renderItems gs =
 
 renderMap :: GameState -> Picture
 renderMap gs =
-  pictures
-    [ translate (fromIntegral x * tileSize)
-                (-(fromIntegral y * tileSize))
-                (tilePic gs tile)
-    | (y,row) <- zip [0..] (gsMap gs)
-    , (x,tile) <- zip [0..] row
-    ]
+  let (px, py) = pPos (gsPlayer gs)
+      -- Convertir posición del jugador a coordenadas de tile
+      playerTileX = floor (px / tileSize)
+      playerTileY = floor (-(py) / tileSize)
+      -- Radio de culling en tiles (15 tiles = ~480 pixeles)
+      cullRadius = 15
+      -- Función para calcular distancia Manhattan
+      manhattanDist x y = abs (x - playerTileX) + abs (y - playerTileY)
+  in pictures
+       [ translate (fromIntegral x * tileSize)
+                   (-(fromIntegral y * tileSize))
+                   (tilePic gs tile)
+       | (y, row) <- zip [0..] (gsMap gs)
+       , (x, tile) <- zip [0..] row
+       , manhattanDist x y <= cullRadius  -- Culling: solo dibujar tiles cercanos
+       ]
 
 tilePic :: GameState -> Tile -> Picture
 tilePic gs FloorTile = aTileFloor (gsAssets gs)

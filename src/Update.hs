@@ -3,17 +3,24 @@ module Update where
 
 import Types
 import Combat
+import Control.Monad.State
 
-updateWorld dt gs =
-  let gs1 = movePlayerByKeys dt gs
-      gs2 = gs1 { gsEnemies = updateEnemies dt gs1 }
-      gs3 = enemyDealDamage dt gs2       -- ← OBLIGATORIO
-      gs4 = cleanupDeadEnemies gs3
-  in gs4
+-- Función principal compatible con Gloss, usa execState internamente
+updateWorld :: Float -> GameState -> GameState
+updateWorld dt gs = execState (updateWorldM dt) gs
 
--- src/Update.hs (reemplazar movePlayerByKeys)
-movePlayerByKeys :: Float -> GameState -> GameState
-movePlayerByKeys dt gs =
+-- Lógica de actualización usando la mónada State
+updateWorldM :: Float -> State GameState ()
+updateWorldM dt = do
+  movePlayerByKeys dt
+  updateEnemies dt
+  enemyDealDamage dt
+  cleanupDeadEnemies
+
+-- Mover al jugador basado en las teclas presionadas
+movePlayerByKeys :: Float -> State GameState ()
+movePlayerByKeys dt = do
+  gs <- get
   let (u,d,l,r) = gsKeys gs
       p  = gsPlayer gs
       sp = pSpeed p * dt
@@ -21,14 +28,17 @@ movePlayerByKeys dt gs =
       dx = (if r then 1 else 0) - (if l then 1 else 0)
       dy = (if u then 1 else 0) - (if d then 1 else 0)
       newPos = (x + dx*sp, y + dy*sp)
-  in if isWalkable newPos (gsMap gs)
-        then gs { gsPlayer = p { pPos = newPos } }
-        else gs
+  when (isWalkable newPos (gsMap gs)) $
+    modify $ \s -> s { gsPlayer = p { pPos = newPos } }
 
-updateEnemies :: Float -> GameState -> [Enemy]
-updateEnemies dt gs =
-  map (advanceEnemy dt gs) (gsEnemies gs)
+-- Actualizar posiciones de todos los enemigos
+updateEnemies :: Float -> State GameState ()
+updateEnemies dt = do
+  gs <- get
+  let enemies' = map (advanceEnemy dt gs) (gsEnemies gs)
+  modify $ \s -> s { gsEnemies = enemies' }
 
+-- Avanzar un enemigo hacia el jugador
 advanceEnemy :: Float -> GameState -> Enemy -> Enemy
 advanceEnemy dt gs e =
   let (px,py) = pPos (gsPlayer gs)
@@ -45,12 +55,16 @@ advanceEnemy dt gs e =
               else e
        else e
 
-enemyDealDamage :: Float -> GameState -> GameState
-enemyDealDamage dt gs =
+-- Los enemigos causan daño al jugador si están cerca
+enemyDealDamage :: Float -> State GameState ()
+enemyDealDamage dt = do
+  gs <- get
   let p  = gsPlayer gs
-      p' = foldl (applyEnemyHit dt) p (gsEnemies gs)
-  in gs { gsPlayer = p' }
+      enemies = gsEnemies gs
+      p' = foldl (applyEnemyHit dt) p enemies
+  modify $ \s -> s { gsPlayer = p' }
 
+-- Aplicar daño de un enemigo al jugador
 applyEnemyHit :: Float -> Player -> Enemy -> Player
 applyEnemyHit dt p e =
   let (px,py) = pPos p
@@ -62,6 +76,7 @@ applyEnemyHit dt p e =
         then playerTakeDamage p dmg
         else p
 
-cleanupDeadEnemies :: GameState -> GameState
-cleanupDeadEnemies gs =
-  gs { gsEnemies = filter (\e -> eHP e > 0) (gsEnemies gs) }
+-- Eliminar enemigos muertos
+cleanupDeadEnemies :: State GameState ()
+cleanupDeadEnemies =
+  modify $ \gs -> gs { gsEnemies = filter (\e -> eHP e > 0) (gsEnemies gs) }

@@ -2,6 +2,7 @@
 module Types where
 
 import Graphics.Gloss
+import System.Random (StdGen)
 
 screenWidth, screenHeight :: Float
 screenWidth  = 800
@@ -63,6 +64,7 @@ data GameState = GameState
   , gsFloor   :: Int
   , gsAssets  :: Assets
   , gsKeys    :: KeysDown
+  , gsRng     :: StdGen  -- Generador aleatorio para uso futuro
   }
 
 -- src/Types.hs (reemplazar isWalkable)

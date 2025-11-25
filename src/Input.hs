@@ -2,6 +2,7 @@
 module Input where
 
 import Graphics.Gloss.Interface.Pure.Game
+import Control.Monad.State (execState)
 import Types
 import Combat
 
@@ -18,7 +19,7 @@ handleInput (EventKey (Char 'a') Up   _ _) gs = gs { gsKeys = setLeft False gs }
 handleInput (EventKey (Char 'd') Down _ _) gs = gs { gsKeys = setRight True gs }
 handleInput (EventKey (Char 'd') Up   _ _) gs = gs { gsKeys = setRight False gs }
 
-handleInput (EventKey (SpecialKey KeySpace) Down _ _) gs = applyPlayerAttack gs
+handleInput (EventKey (SpecialKey KeySpace) Down _ _) gs = execState applyPlayerAttack gs
 
 handleInput _ gs = gs
 
