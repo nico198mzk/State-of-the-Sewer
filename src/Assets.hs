@@ -25,7 +25,7 @@ fromJP dyn =
   in bitmapOfByteString
         w
         h
-        (BitmapFormat TopToBottom PxABGR)
+        (BitmapFormat TopToBottom PxRGBA)  -- <--- CAMBIA ESTO (antes era PxABGR)
         bs
         False
 
