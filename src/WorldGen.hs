@@ -21,11 +21,14 @@ generateRow y gen = [ generateTile x y tileGen | (x, tileGen) <- zip [0..w-1] ti
   where
     tileGens = splitN (w-1) gen
 
--- Genera un tile aleatorio
+-- Genera un tile aleatorio con variante para FloorTile
 generateTile :: Int -> Int -> StdGen -> Tile
 generateTile x y gen =
-  let (r, _) = randomR (1, 10) gen :: (Int, StdGen)
-  in if r <= 2 then WallTile else FloorTile
+  let (tileType, gen')  = randomR (1, 10) gen :: (Int, StdGen)
+      (variant, _)      = randomR (0, 3) gen' :: (Int, StdGen)
+  in if tileType <= 2 
+       then WallTile 
+       else FloorTile variant  -- Usar variante aleatoria 0-3
 
 -- Divide un generador en n+1 generadores
 splitN :: Int -> StdGen -> [StdGen]

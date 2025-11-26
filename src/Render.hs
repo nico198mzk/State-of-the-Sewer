@@ -1,4 +1,4 @@
--- src/Render.hs (reemplazar renderMap y render completamente)
+-- src/Render.hs
 module Render where
 
 import Graphics.Gloss
@@ -42,12 +42,9 @@ renderItems gs =
 renderMap :: GameState -> Picture
 renderMap gs =
   let (px, py) = pPos (gsPlayer gs)
-      -- Convertir posición del jugador a coordenadas de tile
       playerTileX = floor (px / tileSize)
       playerTileY = floor (-(py) / tileSize)
-      -- Radio de culling en tiles (15 tiles = ~480 pixeles)
       cullRadius = 15
-      -- Función para calcular distancia Manhattan
       manhattanDist x y = abs (x - playerTileX) + abs (y - playerTileY)
   in pictures
        [ translate (fromIntegral x * tileSize)
@@ -55,11 +52,20 @@ renderMap gs =
                    (tilePic gs tile)
        | (y, row) <- zip [0..] (gsMap gs)
        , (x, tile) <- zip [0..] row
-       , manhattanDist x y <= cullRadius  -- Culling: solo dibujar tiles cercanos
+       , manhattanDist x y <= cullRadius
        ]
 
+-- Función auxiliar segura para acceder a lista
+safeIndex :: [a] -> Int -> Maybe a
+safeIndex xs n
+  | n < 0 || n >= length xs = Nothing
+  | otherwise               = Just (xs !! n)
+
 tilePic :: GameState -> Tile -> Picture
-tilePic gs FloorTile = aTileFloor (gsAssets gs)
-tilePic gs WallTile  = aTileWall  (gsAssets gs)
+tilePic gs (FloorTile variant) =
+  case safeIndex (aTileFloors (gsAssets gs)) variant of
+    Just pic -> pic
+    Nothing  -> color green (rectangleSolid tileSize tileSize)  -- Fallback
+tilePic gs WallTile  = aTileWall (gsAssets gs)
 tilePic _ StairUp    = color yellow  (circleSolid 10)
 tilePic _ StairDown  = color magenta (circleSolid 10)

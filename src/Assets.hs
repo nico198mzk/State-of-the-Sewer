@@ -12,7 +12,7 @@ import Types
 -- Helper: convert DynamicImage → ImageRGBA8
 toRGBA8 :: DynamicImage -> Image PixelRGBA8
 toRGBA8 (ImageRGBA8 img) = img
-toRGBA8 dyn               = convertRGBA8 dyn   -- siempre funciona
+toRGBA8 dyn               = convertRGBA8 dyn
 
 -- Convert JuicyPixels ImageRGBA8 → Gloss Picture
 fromJP :: DynamicImage -> Picture
@@ -40,16 +40,20 @@ loadPNG fp = do
 -- Load all required assets
 loadAssets :: IO Assets
 loadAssets = do
-  p  <- loadPNG "assets/player.png"
-  e  <- loadPNG "assets/rat_enemy.png"
-  fl <- loadPNG "assets/tile_floor.png"
-  wl <- loadPNG "assets/tile_wall.png"
-  it <- loadPNG "assets/item_food.png"
+  p   <- loadPNG "assets/player.png"
+  e   <- loadPNG "assets/rat_enemy.png"
+  -- Cargar 4 variantes de suelo
+  fl0 <- loadPNG "assets/tile0.bmp"
+  fl1 <- loadPNG "assets/tile1.bmp"
+  fl2 <- loadPNG "assets/tile2.bmp"
+  fl3 <- loadPNG "assets/tile3.bmp"
+  wl  <- loadPNG "assets/tile_wall.png"
+  it  <- loadPNG "assets/item_food.png"
 
   return Assets
-    { aPlayer = p
-    , aEnemy = e
-    , aTileFloor = fl
-    , aTileWall = wl
-    , aItemFood = it
+    { aPlayer     = p
+    , aEnemy      = e
+    , aTileFloors = [fl0, fl1, fl2, fl3]  -- Lista de variantes
+    , aTileWall   = wl
+    , aItemFood   = it
     }

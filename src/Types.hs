@@ -14,7 +14,7 @@ tileSize = 32
 type Vec2 = (Float, Float)
 
 data Tile
-  = FloorTile
+  = FloorTile Int  -- Modificado: ahora acepta un Int para variante (0-3)
   | WallTile
   | StairUp
   | StairDown
@@ -47,11 +47,11 @@ data Item
   deriving (Show,Eq)
 
 data Assets = Assets
-  { aPlayer    :: Picture
-  , aEnemy     :: Picture
-  , aTileFloor :: Picture
-  , aTileWall  :: Picture
-  , aItemFood  :: Picture
+  { aPlayer     :: Picture
+  , aEnemy      :: Picture
+  , aTileFloors :: [Picture]  -- Modificado: ahora es una lista de variantes
+  , aTileWall   :: Picture
+  , aItemFood   :: Picture
   }
 
 type KeysDown = (Bool, Bool, Bool, Bool)
@@ -64,14 +64,16 @@ data GameState = GameState
   , gsFloor   :: Int
   , gsAssets  :: Assets
   , gsKeys    :: KeysDown
-  , gsRng     :: StdGen  -- Generador aleatorio para uso futuro
+  , gsRng     :: StdGen
   }
 
--- src/Types.hs (reemplazar isWalkable)
 isWalkable :: Vec2 -> TileMap -> Bool
 isWalkable (px,py) tiles =
   let tx = floor (px / tileSize)
       ty = floor (-(py) / tileSize)
       h  = length tiles
       w  = if null tiles then 0 else length (head tiles)
-  in tx >= 0 && ty >= 0 && tx < w && ty < h && (tiles !! ty !! tx) /= WallTile
+  in tx >= 0 && ty >= 0 && tx < w && ty < h && isFloor (tiles !! ty !! tx)
+  where
+    isFloor (FloorTile _) = True
+    isFloor _             = False
