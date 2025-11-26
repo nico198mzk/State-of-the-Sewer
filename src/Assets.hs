@@ -1,4 +1,4 @@
---src/Assets.hs
+-- src/Assets.hs
 module Assets where
 
 import Codec.Picture
@@ -25,7 +25,7 @@ fromJP dyn =
   in bitmapOfByteString
         w
         h
-        (BitmapFormat TopToBottom PxRGBA)  -- <--- CAMBIA ESTO (antes era PxABGR)
+        (BitmapFormat TopToBottom PxRGBA)
         bs
         False
 
@@ -42,18 +42,25 @@ loadAssets :: IO Assets
 loadAssets = do
   p   <- loadPNG "assets/player.png"
   e   <- loadPNG "assets/rat_enemy.png"
+  
   -- Cargar 4 variantes de suelo
-  fl0 <- loadPNG "assets/tile0.bmp"
-  fl1 <- loadPNG "assets/tile1.bmp"
-  fl2 <- loadPNG "assets/tile2.bmp"
-  fl3 <- loadPNG "assets/tile3.bmp"
-  wl  <- loadPNG "assets/tile_wall.png"
+  fl0 <- loadPNG "assets/tile0.png"
+  fl1 <- loadPNG "assets/tile1.png"
+  fl2 <- loadPNG "assets/tile2.png"
+  fl3 <- loadPNG "assets/tile3.png"
+  
+  -- Cargar 4 variantes de muro
+  wl0 <- loadPNG "assets/wall0.png"
+  wl1 <- loadPNG "assets/wall1.png"
+  wl2 <- loadPNG "assets/wall2.png"
+  wl3 <- loadPNG "assets/wall3.png"
+  
   it  <- loadPNG "assets/item_food.png"
 
   return Assets
     { aPlayer     = p
     , aEnemy      = e
-    , aTileFloors = [fl0, fl1, fl2, fl3]  -- Lista de variantes
-    , aTileWall   = wl
+    , aTileFloors = [fl0, fl1, fl2, fl3]
+    , aTileWalls  = [wl0, wl1, wl2, wl3]  -- Lista de variantes de muro
     , aItemFood   = it
     }

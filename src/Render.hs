@@ -62,10 +62,14 @@ safeIndex xs n
   | otherwise               = Just (xs !! n)
 
 tilePic :: GameState -> Tile -> Picture
+tilePic _ Void = Blank  -- No renderizar tiles vacíos
 tilePic gs (FloorTile variant) =
   case safeIndex (aTileFloors (gsAssets gs)) variant of
     Just pic -> pic
     Nothing  -> color green (rectangleSolid tileSize tileSize)  -- Fallback
-tilePic gs WallTile  = aTileWall (gsAssets gs)
+tilePic gs (WallTile variant) =
+  case safeIndex (aTileWalls (gsAssets gs)) variant of
+    Just pic -> pic
+    Nothing  -> color red (rectangleSolid tileSize tileSize)  -- Fallback
 tilePic _ StairUp    = color yellow  (circleSolid 10)
 tilePic _ StairDown  = color magenta (circleSolid 10)

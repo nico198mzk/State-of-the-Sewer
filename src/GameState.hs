@@ -4,9 +4,10 @@ module GameState where
 import Types
 import System.Random (StdGen)
 
-initPlayer :: Player
-initPlayer = Player
-  { pPos       = (0, 0)
+-- Modificado para aceptar posición inicial
+initPlayer :: Vec2 -> Player
+initPlayer startPos = Player
+  { pPos       = startPos
   , pHP        = 100
   , pMaxHP     = 100
   , pAtk       = 10
@@ -15,9 +16,10 @@ initPlayer = Player
   , pInventory = []
   }
 
-emptyState :: Assets -> TileMap -> StdGen -> GameState
-emptyState assets m gen = GameState
-  { gsPlayer  = initPlayer
+-- Modificado para usar posición inicial del mapa
+emptyState :: Assets -> TileMap -> Vec2 -> StdGen -> GameState
+emptyState assets m startPos gen = GameState
+  { gsPlayer  = initPlayer startPos  -- Usar posición generada
   , gsEnemies =
       [ Enemy (  80,   -40) 40 20
       , Enemy ( 200, -180) 40 20
@@ -28,5 +30,5 @@ emptyState assets m gen = GameState
   , gsFloor   = 0
   , gsAssets  = assets
   , gsKeys    = (False, False, False, False)
-  , gsRng     = gen  -- Almacenar generador para uso futuro
+  , gsRng     = gen
   }

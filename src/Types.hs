@@ -14,8 +14,9 @@ tileSize = 32
 type Vec2 = (Float, Float)
 
 data Tile
-  = FloorTile Int  -- Modificado: ahora acepta un Int para variante (0-3)
-  | WallTile
+  = Void           -- Espacio vacío (no jugable)
+  | FloorTile Int  -- Variante de textura (0-3)
+  | WallTile Int   -- Modificado: ahora acepta variante (0-3)
   | StairUp
   | StairDown
   deriving (Eq,Show)
@@ -49,8 +50,8 @@ data Item
 data Assets = Assets
   { aPlayer     :: Picture
   , aEnemy      :: Picture
-  , aTileFloors :: [Picture]  -- Modificado: ahora es una lista de variantes
-  , aTileWall   :: Picture
+  , aTileFloors :: [Picture]  -- Lista de variantes de suelo
+  , aTileWalls  :: [Picture]  -- Modificado: ahora es una lista de variantes
   , aItemFood   :: Picture
   }
 
