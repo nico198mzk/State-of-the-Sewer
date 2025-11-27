@@ -47,6 +47,12 @@ data Item
   | BoostSpeed Float
   deriving (Show,Eq)
 
+data GamePhase  -- Nuevo: ahora el juego tiene fase 
+  = Playing
+  | GameOver
+  | Victory
+  deriving (Eq, Show)
+
 data Assets = Assets
   { aPlayer     :: Picture
   , aEnemy      :: Picture
@@ -66,6 +72,7 @@ data GameState = GameState
   , gsAssets  :: Assets
   , gsKeys    :: KeysDown
   , gsRng     :: StdGen
+  , gsPhase   :: GamePhase -- nuevo
   }
 
 isWalkable :: Vec2 -> TileMap -> Bool

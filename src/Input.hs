@@ -5,8 +5,19 @@ import Graphics.Gloss.Interface.Pure.Game
 import Control.Monad.State (execState)
 import Types
 import Combat
+import GameState (resetGame)
 
 handleInput :: Event -> GameState -> GameState
+--Reiniciar con la R
+handleInput (EventKey (Char 'r') Down _ _) gs =
+  resetGame gs
+
+--Matar al jugador (Nuevo)
+handleInput (EventKey (Char 'k') Down _ _) gs =
+  let p = gsPlayer gs
+  in gs { gsPlayer = p { pHP = 0 }
+        , gsPhase = GameOver }
+
 handleInput (EventKey (Char 'w') Down _ _) gs = gs { gsKeys = setUp True gs }
 handleInput (EventKey (Char 'w') Up   _ _) gs = gs { gsKeys = setUp False gs }
 

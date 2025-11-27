@@ -1,0 +1,22 @@
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/haski-rpg.cabal:
+  hash: 22e5d30b3d5eb9af7632c3ee7ab64a6aa8e23cc22f2f584416d03d4ccdd4004f
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Assets.hs:
+  hash: 8f8d7abeb75cb93b2bfe741119bdaab7533031ccaf4d302140f4549002c3e97b
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Combat.hs:
+  hash: 4c4546fb4df6efd37b473bef2ead49f1da304bf0e657982919edae5906ba0352
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/GameState.hs:
+  hash: ad8710d44fe34be829de7308034441dedb60662eee54483dd1afb3b60acd8d68
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Input.hs:
+  hash: d508063a3738d1ed38714f017a5cbb5b529a9f42074c038000c6e6d362126be5
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Inventory.hs:
+  hash: 249cb3085315329e8991d4e4fd860cede5fe81b4db518343a4b18ec42a9c5d7e
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Main.hs:
+  hash: 112ed1d4c156b9918fc9941e2e1e3bed188ce968f7a9f142153b3b11c4cd511f
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Render.hs:
+  hash: edc0cb9a180ea82db160e6652420f79cd69f9ec210882b274733508e28b176c4
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Types.hs:
+  hash: 95d90e5b792356147a2fdbf192b3ce8ab23a833ab19f037087d3708dac7ea0a6
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/Update.hs:
+  hash: 75e9d185958d79e38203f5fc5ea215d19d4d54aebb1db7c1ddda13247ec2f84c
+/mnt/c/Linux/paradigmas/juego_test/State-of-the-Sewer-main/State-of-the-Sewer-main/src/WorldGen.hs:
+  hash: f3e639af66baf1a038613756ccf1d7dac1e38c5291b7bd516cf56171166b1a44
