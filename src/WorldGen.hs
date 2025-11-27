@@ -43,22 +43,34 @@ roomDistance r1 r2 =
       dy = fromIntegral (y2 - y1)
   in sqrt (dx * dx + dy * dy)
 
--- Genera un mapa con salas y pasillos, devuelve (mapa, posición inicial)
-generateMap :: StdGen -> (TileMap, Vec2)
+-- Genera un mapa con salas, pasillos y enemigos, devuelve (mapa, posición inicial, enemigos)
+generateMap :: StdGen -> (TileMap, Vec2, [Enemy])
 generateMap gen =
-  let -- Paso 1: Inicializar mapa vacío (todo Void)
+  let -- Dividir generador para diferentes propósitos
+      (roomGen, enemyGen) = split gen
+      
+      -- Paso 1: Inicializar mapa vacío (todo Void)
       emptyMap = createVoidMap
+      
       -- Paso 2: Generar salas con restricción de distancia
-      (rooms, gen1) = generateRooms gen [] 15
+      (rooms, gen1) = generateRooms roomGen [] 15
+      
       -- Paso 3: Esculpir salas (colocar suelo)
       mapWithRooms = foldl carveRoom emptyMap rooms
+      
       -- Paso 4: Esculpir pasillos anchos (2 tiles)
       (mapWithCorridors, gen2) = connectRooms mapWithRooms rooms gen1
+      
       -- Paso 5: Generar muros automáticamente
       finalMap = autoTileWalls mapWithCorridors gen2
+      
+      -- Paso 6: Generar enemigos en todas las salas (excepto la primera)
+      enemies = spawnEnemiesInRooms (tail rooms) enemyGen
+      
       -- Posición inicial (centro de la primera sala)
       startPos = roomToWorldPos (head rooms)
-  in (finalMap, startPos)
+      
+  in (finalMap, startPos, enemies)
 
 -- Convierte posición de sala a coordenadas del mundo
 roomToWorldPos :: Rect -> Vec2
@@ -76,6 +88,57 @@ getWeightedFloorVariant gen =
               | roll <= 95  = 2  -- 5% probabilidad
               | otherwise   = 3  -- 5% probabilidad
   in (variant, gen')
+
+-- ============================================================================
+-- GENERACIÓN DE ENEMIGOS
+-- ============================================================================
+
+-- Genera enemigos en múltiples salas
+spawnEnemiesInRooms :: [Rect] -> StdGen -> [Enemy]
+spawnEnemiesInRooms [] _ = []
+spawnEnemiesInRooms (room:rest) gen =
+  let (gen1, gen2) = split gen
+      enemiesInRoom = spawnEnemiesInRoom room gen1
+  in enemiesInRoom ++ spawnEnemiesInRooms rest gen2
+
+-- Genera enemigos en una sala específica
+-- Densidad: área / 25 (aprox 1 enemigo cada 5x5 tiles)
+spawnEnemiesInRoom :: Rect -> StdGen -> [Enemy]
+spawnEnemiesInRoom room gen =
+  let area = rectW room * rectH room
+      count = max 1 (area `div` 25)  -- Al menos 1, máximo área/25
+      (enemies, _) = generateNEnemies count room gen
+  in enemies
+
+-- Genera N enemigos con posiciones y atributos aleatorios
+generateNEnemies :: Int -> Rect -> StdGen -> ([Enemy], StdGen)
+generateNEnemies 0 _ gen = ([], gen)
+generateNEnemies n room gen =
+  let (enemy, gen1) = generateOneEnemy room gen
+      (rest, gen2) = generateNEnemies (n - 1) room gen1
+  in (enemy : rest, gen2)
+
+-- Genera un enemigo con posición y atributos aleatorios dentro de la sala
+generateOneEnemy :: Rect -> StdGen -> (Enemy, StdGen)
+generateOneEnemy room gen =
+  let -- Posición aleatoria dentro de la sala (con margen de 1 tile)
+      x1 = rectX room + 1
+      y1 = rectY room + 1
+      x2 = rectX room + rectW room - 2
+      y2 = rectY room + rectH room - 2
+      
+      (tileX, gen1) = randomR (x1, max x1 x2) gen
+      (tileY, gen2) = randomR (y1, max y1 y2) gen1
+      
+      -- Convertir a coordenadas del mundo
+      worldX = fromIntegral tileX * tileSize
+      worldY = -(fromIntegral tileY * tileSize)
+      
+      -- Atributos aleatorios para variedad
+      (hp, gen3) = randomR (30, 60) gen2  -- HP entre 30 y 60
+      (atk, gen4) = randomR (8, 15) gen3  -- Ataque entre 8 y 15
+      
+  in (Enemy (worldX, worldY) hp atk, gen4)
 
 -- Crea un mapa lleno de Void
 createVoidMap :: TileMap

@@ -21,13 +21,13 @@ main = do
   gen    <- getStdGen
   let (mapGen, gameGen) = split gen
   
-  -- Generar mapa y obtener posición inicial
-  let (tileMap, startPos) = generateMap mapGen
+  -- Generar mapa, posición inicial y lista de enemigos
+  let (tileMap, startPos, enemies) = generateMap mapGen
   
   assets <- loadAssets
   
-  -- Crear estado inicial con la posición de inicio correcta
-  let initial = emptyState assets tileMap startPos gameGen
+  -- Crear estado inicial con la posición de inicio y enemigos generados
+  let initial = emptyState assets tileMap startPos enemies gameGen
   
   play
     (InWindow "HASKI RPG" (800, 600) (100,100))

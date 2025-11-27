@@ -9,26 +9,24 @@ import System.Random (StdGen, next)
 -- Modificado para aceptar posición inicial
 initPlayer :: Vec2 -> Player
 initPlayer startPos = Player
-  { pPos       = startPos
-  , pHP        = 100
-  , pMaxHP     = 100
-  , pAtk       = 10
-  , pSpeed     = 60
-  , pCooldown  = 0
-  , pInventory = []
+  { pPos         = startPos
+  , pHP          = 100
+  , pMaxHP       = 100
+  , pAtk         = 10
+  , pSpeed       = 60
+  , pCooldown    = 0
+  , pInventory   = []
+  , pFacing      = DirDown      -- Iniciar mirando hacia abajo
+  , pAttackTimer = 0            -- Sin animación de ataque al inicio
   }
 
--- Modificado para usar posición inicial del mapa
-emptyState :: Assets -> TileMap -> Vec2 -> StdGen -> GameState
-emptyState assets m startPos gen = 
+-- Modificado para usar posición inicial del mapa y lista de enemigos generados
+emptyState :: Assets -> TileMap -> Vec2 -> [Enemy] -> StdGen -> GameState
+emptyState assets m startPos enemies gen = 
   let (sx,sy)= startPos
   in GameState
     { gsPlayer  = initPlayer startPos  -- Usar posición generada
-    , gsEnemies =
-        [ Enemy (  80,   -40) 40 20
-        , Enemy ( 200, -180) 40 20
-        , Enemy (  20,  -140) 40 20
-        ]
+    , gsEnemies = enemies  -- Usar enemigos generados por WorldGen
     , gsItems = 
         [ ((sx + 40, sy),   Heal 30)
         , ((sx + 80, sy),   BoostAtk 5)
@@ -49,7 +47,7 @@ resetGame gs =
       (newSeed, newGen) = next oldGen
       assets = gsAssets gs
 
-      -- Generar nuevo mapa y posición inicial
-      (newMap, startPos) = generateMap newGen
+      -- Generar nuevo mapa, posición inicial y enemigos
+      (newMap, startPos, enemies) = generateMap newGen
 
-  in emptyState assets newMap startPos newGen
+  in emptyState assets newMap startPos enemies newGen

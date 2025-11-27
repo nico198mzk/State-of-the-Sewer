@@ -35,9 +35,11 @@ movePlayerByKeys dt = do
       dx = (if r then 1 else 0) - (if l then 1 else 0)
       dy = (if u then 1 else 0) - (if d then 1 else 0)
       newPos = (x + dx*sp, y + dy*sp)
+      -- Actualizar timer de ataque
+      newTimer = max 0 (pAttackTimer p - dt)
   if isWalkable newPos (gsMap gs) --poder hacer que el jugador recoja los items
     then do
-      let pMoved = p {pPos = newPos}
+      let pMoved = p {pPos = newPos, pAttackTimer = newTimer}
           (picked, remaining) =
             partition (\(pos, _) -> distance pos newPos < 16) (gsItems gs)
           
@@ -46,7 +48,7 @@ movePlayerByKeys dt = do
           pUpdated = foldl applyItem pMoved pickedItems
       put gs {gsPlayer = pUpdated, gsItems = remaining }
     else 
-      return()
+      modify $ \s -> s { gsPlayer = p { pAttackTimer = newTimer } }
 
 
 

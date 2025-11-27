@@ -18,19 +18,30 @@ handleInput (EventKey (Char 'k') Down _ _) gs =
   in gs { gsPlayer = p { pHP = 0 }
         , gsPhase = GameOver }
 
-handleInput (EventKey (Char 'w') Down _ _) gs = gs { gsKeys = setUp True gs }
+handleInput (EventKey (Char 'w') Down _ _) gs = 
+  let p = gsPlayer gs
+  in gs { gsKeys = setUp True gs, gsPlayer = p { pFacing = DirUp } }
 handleInput (EventKey (Char 'w') Up   _ _) gs = gs { gsKeys = setUp False gs }
 
-handleInput (EventKey (Char 's') Down _ _) gs = gs { gsKeys = setDown True gs }
+handleInput (EventKey (Char 's') Down _ _) gs = 
+  let p = gsPlayer gs
+  in gs { gsKeys = setDown True gs, gsPlayer = p { pFacing = DirDown } }
 handleInput (EventKey (Char 's') Up   _ _) gs = gs { gsKeys = setDown False gs }
 
-handleInput (EventKey (Char 'a') Down _ _) gs = gs { gsKeys = setLeft True gs }
+handleInput (EventKey (Char 'a') Down _ _) gs = 
+  let p = gsPlayer gs
+  in gs { gsKeys = setLeft True gs, gsPlayer = p { pFacing = DirLeft } }
 handleInput (EventKey (Char 'a') Up   _ _) gs = gs { gsKeys = setLeft False gs }
 
-handleInput (EventKey (Char 'd') Down _ _) gs = gs { gsKeys = setRight True gs }
+handleInput (EventKey (Char 'd') Down _ _) gs = 
+  let p = gsPlayer gs
+  in gs { gsKeys = setRight True gs, gsPlayer = p { pFacing = DirRight } }
 handleInput (EventKey (Char 'd') Up   _ _) gs = gs { gsKeys = setRight False gs }
 
-handleInput (EventKey (SpecialKey KeySpace) Down _ _) gs = execState applyPlayerAttack gs
+handleInput (EventKey (SpecialKey KeySpace) Down _ _) gs = 
+  let gs' = execState applyPlayerAttack gs
+      p = gsPlayer gs'
+  in gs' { gsPlayer = p { pAttackTimer = 0.3 } }  -- Activar animación por 0.3 segundos
 
 handleInput _ gs = gs
 

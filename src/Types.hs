@@ -13,6 +13,10 @@ tileSize = 32
 
 type Vec2 = (Float, Float)
 
+-- Dirección para combate direccional
+data Direction = DirUp | DirDown | DirLeft | DirRight
+  deriving (Show, Eq)
+
 data Tile
   = Void           -- Espacio vacío (no jugable)
   | FloorTile Int  -- Variante de textura (0-3)
@@ -24,13 +28,15 @@ data Tile
 type TileMap = [[Tile]]
 
 data Player = Player
-  { pPos       :: Vec2
-  , pHP        :: Int
-  , pMaxHP     :: Int
-  , pAtk       :: Int
-  , pSpeed     :: Float
-  , pCooldown  :: Float
-  , pInventory :: [Item]
+  { pPos         :: Vec2
+  , pHP          :: Int
+  , pMaxHP       :: Int
+  , pAtk         :: Int
+  , pSpeed       :: Float
+  , pCooldown    :: Float
+  , pInventory   :: [Item]
+  , pFacing      :: Direction    -- Nueva: dirección hacia donde mira
+  , pAttackTimer :: Float        -- Nueva: tiempo de animación de ataque
   }
   deriving (Show)
 
@@ -56,9 +62,11 @@ data GamePhase  -- Nuevo: ahora el juego tiene fase
 data Assets = Assets
   { aPlayer     :: Picture
   , aEnemy      :: Picture
+  , aEnemySlime :: Picture  -- Nueva: imagen para enemigos Slime
   , aTileFloors :: [Picture]  -- Lista de variantes de suelo
   , aTileWalls  :: [Picture]  -- Modificado: ahora es una lista de variantes
   , aItemFood   :: Picture
+  , aSword      :: Picture    -- Nueva: imagen de la espada
   }
 
 type KeysDown = (Bool, Bool, Bool, Bool)

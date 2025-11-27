@@ -50,13 +50,47 @@ render gs =
 
 renderPlayer :: GameState -> Picture
 renderPlayer gs =
-  let (x,y) = pPos (gsPlayer gs)
-  in translate x y (aPlayer (gsAssets gs))
+  let p = gsPlayer gs
+      (x,y) = pPos p
+      facing = pFacing p
+      timer = pAttackTimer p
+      assets = gsAssets gs
+      
+      -- Imagen del jugador
+      playerImg = aPlayer assets
+      
+      -- Indicador de dirección (triángulo) - Aparece frente al jugador
+      directionIndicator = color (makeColorI 255 255 0 150) $ 
+        case facing of
+          DirUp    -> translate 0 40 $ polygon [(0, 8), (-5, 0), (5, 0)]
+          DirDown  -> translate 0 (-40) $ polygon [(0, -8), (-5, 0), (5, 0)]
+          DirLeft  -> translate (-30) 0 $ polygon [(-8, 0), (0, -5), (0, 5)]
+          DirRight -> translate 30 0 $ polygon [(8, 0), (0, -5), (0, 5)]
+      
+      -- Espada (solo si está atacando)
+      swordPic = if timer > 0
+                   then let sword = aSword assets
+                            -- Rotar según dirección (sprite apunta arriba)
+                            rotation = case facing of
+                              DirUp    -> 0
+                              DirDown  -> 180
+                              DirLeft  -> -90
+                              DirRight -> 90
+                            -- Posición relativa de la espada
+                            (sx, sy) = case facing of
+                              DirUp    -> (0, 20)
+                              DirDown  -> (0, -20)
+                              DirLeft  -> (-20, 0)
+                              DirRight -> (20, 0)
+                        in translate sx sy $ rotate rotation sword
+                   else Blank
+      
+  in translate x y $ pictures [playerImg, directionIndicator, swordPic]
 
 renderEnemies :: GameState -> Picture
 renderEnemies gs =
   pictures
-    [ translate x y (aEnemy (gsAssets gs))
+    [ translate x y (aEnemySlime (gsAssets gs))  -- Usar imagen de slime
     | Enemy (x,y) _ _ <- gsEnemies gs
     ]
 
