@@ -44,10 +44,10 @@ loadAssets = do
   e   <- loadPNG "assets/rat_enemy.png"
   
   -- Cargar 4 variantes de suelo
-  fl0 <- loadPNG "assets/tile0.png"
-  fl1 <- loadPNG "assets/tile1.png"
-  fl2 <- loadPNG "assets/tile2.png"
-  fl3 <- loadPNG "assets/tile3.png"
+  fl0 <- loadPNG "assets/Layer 1_tile2.png"
+  fl1 <- loadPNG "assets/Layer 1_tile1.png"
+  fl2 <- loadPNG "assets/Layer 1_tile3.png"
+  fl3 <- loadPNG "assets/Layer 1_tile4.png"
   
   -- Cargar 4 variantes de muro
   wl0 <- loadPNG "assets/wall0.png"

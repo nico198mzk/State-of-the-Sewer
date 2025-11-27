@@ -1,7 +1,7 @@
 -- src/WorldGen.hs
 module WorldGen where
 
-import System.Random (StdGen, randomR, split)
+import System.Random (StdGen, randomR, split, mkStdGen)
 import Types
 
 -- Dimensiones del mapa
@@ -66,6 +66,17 @@ roomToWorldPos room =
   let (cx, cy) = center room
   in (fromIntegral cx * tileSize, -(fromIntegral cy * tileSize))
 
+-- Selecciona variante de suelo con ponderación (weighted randomness)
+-- Variante 0: 70%, Variante 1: 20%, Variante 2: 5%, Variante 3: 5%
+getWeightedFloorVariant :: StdGen -> (Int, StdGen)
+getWeightedFloorVariant gen =
+  let (roll, gen') = randomR (1, 100) gen :: (Int, StdGen)
+      variant | roll <= 70  = 0  -- 70% probabilidad
+              | roll <= 90  = 1  -- 20% probabilidad
+              | roll <= 95  = 2  -- 5% probabilidad
+              | otherwise   = 3  -- 5% probabilidad
+  in (variant, gen')
+
 -- Crea un mapa lleno de Void
 createVoidMap :: TileMap
 createVoidMap = replicate mapHeight (replicate mapWidth Void)
@@ -110,13 +121,17 @@ carveRoom tmap room =
       y1 = rectY room
       x2 = x1 + rectW room
       y2 = y1 + rectH room
-  in [ [ if x >= x1 && x < x2 && y >= y1 && y < y2
-           then FloorTile (((x + y) `mod` 4))
-           else tile
-       | (x, tile) <- zip [0..] row
-       ]
-     | (y, row) <- zip [0..] tmap
-     ]
+      gen = mkStdGen (x1 + y1 * 1000)
+      (finalMap, _) = foldl processRow ([], gen) (zip [0..] tmap)
+      processRow (rows, g) (y, row) =
+        let (newRow, g') = foldl (processCell y) ([], g) (zip [0..] row)
+        in (rows ++ [newRow], g')
+      processCell y (cells, gCell) (x, tile) =
+        if x >= x1 && x < x2 && y >= y1 && y < y2
+          then let (variant, gCell') = getWeightedFloorVariant gCell
+               in (cells ++ [FloorTile variant], gCell')
+          else (cells ++ [tile], gCell)
+  in finalMap
 
 -- Conecta todas las habitaciones con pasillos anchos
 connectRooms :: TileMap -> [Rect] -> StdGen -> (TileMap, StdGen)
@@ -145,26 +160,34 @@ carveWideHorizontalCorridor :: TileMap -> Int -> Int -> Int -> TileMap
 carveWideHorizontalCorridor tmap x1 x2 y =
   let xStart = min x1 x2
       xEnd = max x1 x2
-  in [ [ if xIdx >= xStart && xIdx <= xEnd && (yIdx == y || yIdx == y + 1)
-           then FloorTile ((xIdx + yIdx) `mod` 4)
-           else tile
-       | (xIdx, tile) <- zip [0..] row
-       ]
-     | (yIdx, row) <- zip [0..] tmap
-     ]
+      gen = mkStdGen (xStart + y * 1000)
+      (finalMap, _) = foldl processRow ([], gen) (zip [0..] tmap)
+      processRow (rows, g) (yIdx, row) =
+        let (newRow, g') = foldl (processCell yIdx) ([], g) (zip [0..] row)
+        in (rows ++ [newRow], g')
+      processCell yIdx (cells, gCell) (xIdx, tile) =
+        if xIdx >= xStart && xIdx <= xEnd && (yIdx == y || yIdx == y + 1)
+          then let (variant, gCell') = getWeightedFloorVariant gCell
+               in (cells ++ [FloorTile variant], gCell')
+          else (cells ++ [tile], gCell)
+  in finalMap
 
 -- Talla un pasillo vertical ancho (2 tiles de grosor)
 carveWideVerticalCorridor :: TileMap -> Int -> Int -> Int -> TileMap
 carveWideVerticalCorridor tmap y1 y2 x =
   let yStart = min y1 y2
       yEnd = max y1 y2
-  in [ [ if yIdx >= yStart && yIdx <= yEnd && (xIdx == x || xIdx == x + 1)
-           then FloorTile ((xIdx + yIdx) `mod` 4)
-           else tile
-       | (xIdx, tile) <- zip [0..] row
-       ]
-     | (yIdx, row) <- zip [0..] tmap
-     ]
+      gen = mkStdGen (x + yStart * 1000)
+      (finalMap, _) = foldl processRow ([], gen) (zip [0..] tmap)
+      processRow (rows, g) (yIdx, row) =
+        let (newRow, g') = foldl (processCell yIdx) ([], g) (zip [0..] row)
+        in (rows ++ [newRow], g')
+      processCell yIdx (cells, gCell) (xIdx, tile) =
+        if yIdx >= yStart && yIdx <= yEnd && (xIdx == x || xIdx == x + 1)
+          then let (variant, gCell') = getWeightedFloorVariant gCell
+               in (cells ++ [FloorTile variant], gCell')
+          else (cells ++ [tile], gCell)
+  in finalMap
 
 -- Auto-tiling: convierte Void en muros si están adyacentes a suelo
 autoTileWalls :: TileMap -> StdGen -> TileMap
