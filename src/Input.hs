@@ -8,6 +8,13 @@ import Combat
 import GameState (resetGame)
 
 handleInput :: Event -> GameState -> GameState
+handleInput (EventKey (SpecialKey KeyEnter) Down _ _) gs =
+  case gsPhase gs of
+    StartScreen    -> gs { gsPhase = ControlsScreen }
+    ControlsScreen -> gs { gsPhase = Playing }
+    _              -> gs
+
+
 --Reiniciar con la R
 handleInput (EventKey (Char 'r') Down _ _) gs =
   resetGame gs

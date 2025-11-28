@@ -11,50 +11,41 @@ cameraOffset gs =
 
 render :: GameState -> Picture
 render gs =
-  let (camX, camY) = cameraOffset gs
-      baseScene =
-        translate camX camY $
-          pictures
-            [ renderMap gs
-            , renderEnemies gs
-            , renderItems gs
-            , renderPlayer gs
-            ]
+  case gsPhase gs of
 
-      makeThickText msg col =
-        let base = text msg
-            thick =
+    StartScreen ->
+      pictures
+        [ color black $ rectangleSolid screenWidth screenHeight
+        , scale 2 1.5 $ 
+            aStartScreen (gsAssets gs)
+        ]
+    ControlsScreen ->
+      pictures
+        [ color black $ rectangleSolid screenWidth screenHeight
+        , scale 2 1.5 $
+            aControlsScreen (gsAssets gs)
+        ]
+
+    -- Resto de fases: dibujamos el mundo con cámara + overlays si quieres
+    _ ->
+      let (camX, camY) = cameraOffset gs
+
+          baseScene =
+            translate camX camY $
               pictures
-                [ translate dx dy base
-                | dx <- [-3, -2, -1, 0, 1, 2, 3]
-                , dy <- [-3, -2, -1, 0, 1, 2, 3]
+                [ renderMap gs
+                , renderEnemies gs
+                , renderItems gs
+                , renderPlayer gs
                 ]
-        in color col thick
 
-      overlay =
-        case gsPhase gs of
-          GameOver ->
-            translate (-260) 0 $
-              scale 0.3 0.3 $
-                makeThickText "GAME OVER" red
+          -- Por ahora, overlay vacío (luego puedes re-agregar GAME OVER, BOSS FIGHT, etc.)
+          overlay = Blank
 
-          Victory  ->
-            translate (-240) 0 $
-              scale 0.3 0.3 $
-                makeThickText "VICTORIA" white
-          
-          BossFight ->
-            if gsBossMsgTime gs > 0
-              then
-                translate (-180) 200 $
-                  scale 0.2 0.2 $
-                    makeThickText "BOSS FIGHT" red
-            else Blank
-
-          Playing  -> Blank
-      
-      hud = renderHUD gs
-  in pictures [baseScene, overlay, hud]
+      in pictures
+           [ baseScene
+           , overlay
+           ]
 
 renderPlayer :: GameState -> Picture
 renderPlayer gs =

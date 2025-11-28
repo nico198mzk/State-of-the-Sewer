@@ -10,30 +10,40 @@ import Data.List (partition)
 import System.Random (StdGen, randomR, split)
 import WorldGen (generateMap)
 
--- Función principal compatible con Gloss, usa execState internamente
 updateWorld :: Float -> GameState -> GameState
 updateWorld dt gs = execState (updateWorldM dt) gs
 
--- Lógica de actualización usando la mónada State
 updateWorldM :: Float -> State GameState ()
 updateWorldM dt = do
-  gs <- get  -- Nuevo
-  case gsPhase gs of -- Nuevo
-    GameOver -> return () -- Nuevo
-    Victory  -> return () -- Nuevo
-    Playing  -> gameLogic  gs-- Nuevo
-    BossFight -> do
-      let newTime= max 0 (gsBossMsgTime gs - dt)
-      put gs {gsBossMsgTime = newTime}
+  gs <- get
+  case gsPhase gs of
+    StartScreen ->
+      return ()
+    
+    ControlsScreen ->    
+      return ()
 
-      gameLogic gs
-  where
-    gameLogic gs = do
+    GameOver ->
+      return ()
+
+    Victory  ->
+      return ()
+
+    Playing  -> do
       movePlayerByKeys dt
       updateEnemies dt
       enemyDealDamage dt
       cleanupDeadEnemies
-      checkStairTransition
+
+    BossFight -> do
+      let t = max 0 (gsBossMsgTime gs - dt)
+      put gs { gsBossMsgTime = t }
+
+      gs2 <- get
+      movePlayerByKeys dt
+      updateEnemies dt
+      enemyDealDamage dt
+      cleanupDeadEnemies
 
 -- Mover al jugador basado en las teclas presionadas
 movePlayerByKeys :: Float -> State GameState ()

@@ -1,22 +1,22 @@
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/haski-rpg.cabal:
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/haski-rpg.cabal:
   hash: 22e5d30b3d5eb9af7632c3ee7ab64a6aa8e23cc22f2f584416d03d4ccdd4004f
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Assets.hs:
-  hash: 6d1992e6812465d5f553d3f2c1592e1d205eaad899c4320d0ecc032daa1d2e72
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Combat.hs:
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Assets.hs:
+  hash: f8580250aa4b51533bd14cae9ca5384041395560b7e36547130868bc607e834b
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Combat.hs:
   hash: 9508cc7b4f9a24327a118e3725ff634604a162b2f4ec6be493b117c509533c3a
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/GameState.hs:
-  hash: a055256b36baca4a58aeae3ad7dfd0e7d27a2ae171fb896ec7353ccd7b8e59f9
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Input.hs:
-  hash: 45a0e582e42e439dde4d555c8acc2a3f4ccd8a1a07ccd5af7d3e8d7b39ef1cba
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Inventory.hs:
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/GameState.hs:
+  hash: 256df361828c55ec75e7d6a0f24a84e6831348dc67c22d2cf5f157cb3121f85f
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Input.hs:
+  hash: 6a50f222619422269d873548268c8d704dc7019dc45e8d318727ed695ab99f02
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Inventory.hs:
   hash: 249cb3085315329e8991d4e4fd860cede5fe81b4db518343a4b18ec42a9c5d7e
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Main.hs:
-  hash: 8237e4166415e18dc31ce08da68f293e09cb6b37c108e1ec3ca0d3f59d3bd778
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Render.hs:
-  hash: 2eae615a358700c30594f6dcf6dbcf2cab2029cc5b0812f9ba91f4a667b7153d
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Types.hs:
-  hash: accc72730c521432f20886668a3160cafd98a60f6698680a7b03c5933ff11c39
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/Update.hs:
-  hash: d83bf69cc598ecd72ebaaec2d6c06f26689f8d68ebb532a960d6d8dfc7318ad6
-/mnt/c/Linux/paradigmas/State-of-the-Sewer/State-of-the-Sewer/src/WorldGen.hs:
-  hash: 27fdd60c8d698352db6358e8d2f04ac2af934ce20e69ed5ba627e486bbbc0eea
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Main.hs:
+  hash: 734e98b136af09d2dd21cdd1f6009e1f5cab12248924f4c5d9d4f806f730c218
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Render.hs:
+  hash: e929ec4fac7688e32572ca81201581e14366fe333f6e4a98017f35adf24ad399
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Types.hs:
+  hash: 6303c03766926361adfffbd86e102ede0318d98414d1f84b314329d49451bac0
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/Update.hs:
+  hash: 91992688662a53e41b96d918f38027725ae43a96a2bc9ecb16887e0699cdaad0
+/mnt/c/Linux/paradigmas/State-of-the-Sewer/src/WorldGen.hs:
+  hash: d0401a101cf8d3b7ba973ad6282b117c3a14e67bdc3c47ba4bee7f7505433afc

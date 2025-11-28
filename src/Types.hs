@@ -54,7 +54,9 @@ data Item
   deriving (Show,Eq)
 
 data GamePhase  -- Nuevo: ahora el juego tiene fase 
-  = Playing
+  = StartScreen
+  | ControlsScreen
+  | Playing
   | BossFight
   | GameOver
   | Victory
@@ -72,6 +74,9 @@ data Assets = Assets
   , aItemFood     :: Picture
   , aSword        :: Picture    -- Nueva: imagen de la espada
   , aStairs       :: Picture    -- Sprite de escalera
+  , aFinalScreen :: Picture
+  , aStartScreen :: Picture
+  , aControlsScreen :: Picture
   }
 
 type KeysDown = (Bool, Bool, Bool, Bool)

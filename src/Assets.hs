@@ -46,6 +46,10 @@ loadAssets = do
   sword <- loadPNG "assets/wood_sword.png"   -- Nueva: cargar espada
   b <- loadPNG "assets/rat_enemy.png"
   
+  --pantalla inicial 
+  start <- loadPNG "assets/start_screen.png"
+  controls <- loadPNG "assets/controls.png"
+
   -- Cargar 4 variantes de suelo (Piso 1)
   fl0 <- loadPNG "assets/Layer 1_tile2.png"
   fl1 <- loadPNG "assets/Layer 1_tile1.png"
@@ -75,6 +79,9 @@ loadAssets = do
   -- Cargar sprite de escalera
   stairs <- loadPNG "assets/Stairs.png"
 
+  --Pantalla final
+  finalScreen <- loadPNG "assets/final_screen.png"
+
   return Assets
     { aPlayer       = p
     , aEnemy        = e
@@ -87,5 +94,8 @@ loadAssets = do
     , aItemFood     = it
     , aSword        = sword  -- Nueva: agregar espada
     , aStairs       = stairs  -- Sprite de escalera
+    , aFinalScreen  = finalScreen
+    , aStartScreen  = start 
+    , aControlsScreen = controls
     }
   
