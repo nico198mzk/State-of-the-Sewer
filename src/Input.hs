@@ -10,7 +10,8 @@ import GameState (resetGame)
 handleInput :: Event -> GameState -> GameState
 handleInput (EventKey (SpecialKey KeyEnter) Down _ _) gs =
   case gsPhase gs of
-    StartScreen    -> gs { gsPhase = ControlsScreen }
+    StartScreen    -> gs { gsPhase = LoreScreen }
+    LoreScreen     -> gs { gsPhase = ControlsScreen }
     ControlsScreen -> gs { gsPhase = Playing }
     _              -> gs
 
@@ -19,11 +20,6 @@ handleInput (EventKey (SpecialKey KeyEnter) Down _ _) gs =
 handleInput (EventKey (Char 'r') Down _ _) gs =
   resetGame gs
 
---Matar al jugador (Nuevo)
-handleInput (EventKey (Char 'k') Down _ _) gs =
-  let p = gsPlayer gs
-  in gs { gsPlayer = p { pHP = 0 }
-        , gsPhase = GameOver }
 
 handleInput (EventKey (Char 'w') Down _ _) gs = 
   let p = gsPlayer gs

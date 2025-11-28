@@ -9,16 +9,36 @@ cameraOffset gs =
   let (px, py) = pPos (gsPlayer gs)
   in (-px, -py)
 
+
+
 render :: GameState -> Picture
+boldText :: Color -> Float -> Float -> String -> Picture
+boldText col sx sy txt =
+  pictures
+    [ translate dx dy $ scale sx sy $ color col $ text txt
+    | dx <- [-2, 0, 2]
+    , dy <- [-2, 0, 2]
+    ]
 render gs =
   case gsPhase gs of
 
+    -- pantalla de inicio
     StartScreen ->
       pictures
         [ color black $ rectangleSolid screenWidth screenHeight
-        , scale 2 1.5 $ 
+        , scale 2 1.5 $
             aStartScreen (gsAssets gs)
         ]
+    
+    -- pantalla de lore
+    LoreScreen ->
+      pictures
+        [ color black $ rectangleSolid screenWidth screenHeight
+        , scale 2 1.5 $
+            aLoreScreen (gsAssets gs)
+        ]
+
+    -- pantalla de controles
     ControlsScreen ->
       pictures
         [ color black $ rectangleSolid screenWidth screenHeight
@@ -26,7 +46,22 @@ render gs =
             aControlsScreen (gsAssets gs)
         ]
 
-    -- Resto de fases: dibujamos el mundo con cámara + overlays si quieres
+    -- pantalla final (despues de terminar los 3 pisos)
+    Victory ->
+      pictures
+        [ color black $ rectangleSolid screenWidth screenHeight
+        , scale 1 1 $
+            aFinalScreen (gsAssets gs)
+        ]
+
+    GameOver ->
+      pictures
+        [ color black $ rectangleSolid screenWidth screenHeight
+        , translate (-200) 0 $
+            boldText red 0.5 0.5 "GAME OVER"
+        ]
+
+    -- Resto de fases
     _ ->
       let (camX, camY) = cameraOffset gs
 
@@ -38,12 +73,23 @@ render gs =
                 , renderItems gs
                 , renderPlayer gs
                 ]
+          hudPic = renderHUD gs
 
-          -- Por ahora, overlay vacío (luego puedes re-agregar GAME OVER, BOSS FIGHT, etc.)
-          overlay = Blank
+          -- Overlay para mensaje de boss
+          bossOverlay =
+            if gsPhase gs == BossFight && gsBossMsgTime gs > 0
+              then
+                translate (-220) 200 $
+                  boldText (makeColorI 200 0 0 255) 0.35 0.35 "BOSS FIGHT"
+              else Blank
+
+          overlay = pictures
+            [ bossOverlay
+            ]
 
       in pictures
            [ baseScene
+           , hudPic
            , overlay
            ]
 
@@ -55,7 +101,6 @@ renderPlayer gs =
       timer = pAttackTimer p
       assets = gsAssets gs
       
-      -- Imagen del jugador
       playerImg = aPlayer assets
       
       -- Indicador de dirección (triángulo) - Aparece frente al jugador
@@ -103,9 +148,16 @@ renderEnemies gs =
 renderItems :: GameState -> Picture
 renderItems gs =
   pictures
-    [ translate x y (aItemFood (gsAssets gs))
-    | ((x,y), _) <- gsItems gs
+    [ translate x y $
+        scale 0.35 0.35 $           
+          itemSprite (gsAssets gs) item
+    | ((x,y), item) <- gsItems gs
     ]
+
+itemSprite :: Assets -> Item -> Picture
+itemSprite a (Heal _      ) = aItemFood  a
+itemSprite a (BoostAtk  _ ) = aItemAtk   a
+itemSprite a (BoostSpeed _) = aItemSpeed a
 
 renderMap :: GameState -> Picture
 renderMap gs =
@@ -197,10 +249,10 @@ tilePic gs (FloorTile variant) =
   let tiles = obtenerTilesDelNivel gs  -- Usar tiles según nivel actual
   in case safeIndex tiles variant of
        Just pic -> pic
-       Nothing  -> color green (rectangleSolid tileSize tileSize)  -- Fallback
+       Nothing  -> color green (rectangleSolid tileSize tileSize)  
 tilePic gs (WallTile variant) =
   case safeIndex (aTileWalls (gsAssets gs)) variant of
     Just pic -> pic
-    Nothing  -> color red (rectangleSolid tileSize tileSize)  -- Fallback
+    Nothing  -> color red (rectangleSolid tileSize tileSize)  
 tilePic _ StairUp    = color yellow  (circleSolid 10)
 tilePic _ StairDown  = color magenta (circleSolid 10)

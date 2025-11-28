@@ -48,6 +48,7 @@ loadAssets = do
   
   --pantalla inicial 
   start <- loadPNG "assets/start_screen.png"
+  lore <- loadPNG "assets/lore_screen.png"
   controls <- loadPNG "assets/controls.png"
 
   -- Cargar 4 variantes de suelo (Piso 1)
@@ -75,6 +76,8 @@ loadAssets = do
   wl3 <- loadPNG "assets/wall3.png"
   
   it  <- loadPNG "assets/item_food.png"
+  itemAtk   <- loadPNG "assets/item_atk.png"
+  itemSpeed <- loadPNG "assets/item_speed.png"
   
   -- Cargar sprite de escalera
   stairs <- loadPNG "assets/Stairs.png"
@@ -92,10 +95,13 @@ loadAssets = do
     , aTileFloors3  = [fl3_0, fl3_1, fl3_2, fl3_3]  -- Tiles Piso 3
     , aTileWalls    = [wl0, wl1, wl2, wl3]  -- Lista de variantes de muro
     , aItemFood     = it
+    , aItemAtk     = itemAtk
+    , aItemSpeed   = itemSpeed
     , aSword        = sword  -- Nueva: agregar espada
     , aStairs       = stairs  -- Sprite de escalera
     , aFinalScreen  = finalScreen
     , aStartScreen  = start 
+    , aLoreScreen   = lore
     , aControlsScreen = controls
     }
   

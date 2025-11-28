@@ -13,7 +13,7 @@ initPlayer startPos = Player
   , pHP          = 100
   , pMaxHP       = 100
   , pAtk         = 10
-  , pSpeed       = 60
+  , pSpeed       = 80
   , pCooldown    = 0
   , pInventory   = []
   , pFacing      = DirDown
@@ -30,17 +30,13 @@ emptyState assets m startPos enemies bossRoomPos gen =
   in GameState
     { gsPlayer       = initPlayer startPos  -- Usar posición generada
     , gsEnemies      = enemies  -- Usar enemigos generados por WorldGen
-    , gsItems        = 
-        [ ((sx + 40, sy),   Heal 30)
-        , ((sx + 80, sy),   BoostAtk 5)
-        , ((sx + 120, sy),  BoostSpeed 30)
-        ] -- Nuevo los 3 items los coloque al lado de donde aparece al jugador mas o menos
+    , gsItems        = [] 
     , gsMap          = m
     , gsFloor        = 0
     , gsAssets       = assets
     , gsKeys         = (False, False, False, False)
     , gsRng          = gen
-    , gsPhase        = StartScreen -- Nuevo
+    , gsPhase        = StartScreen 
     , gsBossMsgTime  = 0
     , nivelActual    = 1          -- Inicia en nivel 1
     , posEscalera    = bossRoomPos  -- Escalera en el centro de la sala del boss

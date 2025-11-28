@@ -29,12 +29,12 @@ initPlayerAtPos newPos p = p
   }
 
 
--- Dirección para combate direccional
+-- direccion para combate direccional
 data Direction = DirUp | DirDown | DirLeft | DirRight
   deriving (Show, Eq)
 
 data Tile
-  = Void           -- Espacio vacío (no jugable)
+  = Void           -- Espacio vacio (no jugable)
   | FloorTile Int  -- Variante de textura (0-3)
   | WallTile Int   -- Variante de muro (0-3)
   | StairUp
@@ -73,6 +73,7 @@ data Item
 
 data GamePhase
   = StartScreen
+  | LoreScreen
   | ControlsScreen
   | Playing
   | BossFight
@@ -90,10 +91,13 @@ data Assets = Assets
   , aTileFloors3  :: [Picture]
   , aTileWalls    :: [Picture]
   , aItemFood     :: Picture
+  , aItemSpeed    :: Picture
+  , aItemAtk      :: Picture
   , aSword        :: Picture
   , aStairs       :: Picture
   , aFinalScreen  :: Picture
   , aStartScreen  :: Picture
+  , aLoreScreen   :: Picture
   , aControlsScreen :: Picture
   }
 
@@ -116,7 +120,6 @@ data GameState = GameState
   }
 
 
--- construye un rect a partir del centro (cx,cy) y medio ancho/alto
 rectFromCenter :: Vec2 -> Float -> Float -> Rect
 rectFromCenter (cx,cy) hw hh = Rect (cx - hw) (cy - hh) (2*hw) (2*hh)
 
@@ -131,7 +134,6 @@ tilesCoveredByRect tileSize (Rect x y w h) =
 
 
 
--- Comprueba que un rect no solape tiles no transitables (TileMap = [[Tile]])
 isRectWalkable :: Rect -> TileMap -> Bool
 isRectWalkable rect tiles =
   let tilesIdx = tilesCoveredByRect tileSize rect

@@ -50,30 +50,24 @@ generateMap gen =
   let -- Dividir generador para diferentes propósitos
       (roomGen, enemyGen) = split gen
       
-      -- Paso 1: Inicializar mapa vacío (todo Void)
       emptyMap = createVoidMap
       
-      -- Paso 2: Generar salas con restricción de distancia
       (rooms, gen1) = generateRooms roomGen [] 15
       
-      -- Paso 3: Esculpir salas (colocar suelo)
       mapWithRooms = foldl carveRoom emptyMap rooms
       
-      -- Paso 4: Esculpir pasillos anchos (2 tiles)
       (mapWithCorridors, gen2) = connectRooms mapWithRooms rooms gen1
       
-      -- Paso 5: Generar muros automáticamente
       finalMap = autoTileWalls mapWithCorridors gen2
       
-      -- Paso 6: Generar enemigos en todas las salas (excepto la primera)
       enemies = spawnEnemiesInRooms (tail rooms) enemyGen
       
-      -- Posición inicial (centro de la primera sala)
+      -- Posicion inicial (centro de la primera sala)
       startPos = roomToWorldPos (head rooms)
       
-      -- Posición de la sala del boss (última sala generada)
+      -- Posicion de la sala del boss (ultima sala generada)
       bossRoomPos = if null rooms 
-                      then startPos  -- Fallback a posición inicial
+                      then startPos  
                       else roomToWorldPos (last rooms)
       
   in (finalMap, startPos, enemies, bossRoomPos)
@@ -84,8 +78,7 @@ roomToWorldPos room =
   let (cx, cy) = center room
   in (fromIntegral cx * tileSize, -(fromIntegral cy * tileSize))
 
--- Selecciona variante de suelo con ponderación (weighted randomness)
--- Variante 0: 70%, Variante 1: 20%, Variante 2: 5%, Variante 3: 5%
+-- Selecciona variante de suelo 
 getWeightedFloorVariant :: StdGen -> (Int, StdGen)
 getWeightedFloorVariant gen =
   let (roll, gen') = randomR (1, 100) gen :: (Int, StdGen)
@@ -108,11 +101,10 @@ spawnEnemiesInRooms (room:rest) gen =
   in enemiesInRoom ++ spawnEnemiesInRooms rest gen2
 
 -- Genera enemigos en una sala específica
--- Densidad: área / 25 (aprox 1 enemigo cada 5x5 tiles)
 spawnEnemiesInRoom :: Rect -> StdGen -> [Enemy]
 spawnEnemiesInRoom room gen =
   let area = rectW room * rectH room
-      count = max 1 (area `div` 25)  -- Al menos 1, máximo área/25
+      count = max 1 (area `div` 25)  
       (enemies, _) = generateNEnemies count room gen
   in enemies
 

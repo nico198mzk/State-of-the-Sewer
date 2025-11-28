@@ -19,7 +19,10 @@ updateWorldM dt = do
   case gsPhase gs of
     StartScreen ->
       return ()
-    
+
+    LoreScreen  -> 
+      return ()
+
     ControlsScreen ->    
       return ()
 
@@ -34,6 +37,7 @@ updateWorldM dt = do
       updateEnemies dt
       enemyDealDamage dt
       cleanupDeadEnemies
+      checkStairTransition
 
     BossFight -> do
       let t = max 0 (gsBossMsgTime gs - dt)
@@ -68,7 +72,7 @@ movePlayerByKeys dt = do
 
       tiles = gsMap gs
 
-  -- función local monádica para aplicar movimiento y recoger items
+  -- función local para aplicar movimiento y recoger items
   let applyMoveAndPick :: (Float,Float) -> State GameState ()
       applyMoveAndPick newPos = do
         gs' <- get
@@ -88,14 +92,14 @@ movePlayerByKeys dt = do
            else modify $ \s -> s { gsPlayer = p { pAttackTimer = newTimer } }
 
 
--- Actualizar posiciones de todos los enemigos
+-- actualizar posiciones de todos los enemigos
 updateEnemies :: Float -> State GameState ()
 updateEnemies dt = do
   gs <- get
   let enemies' = map (advanceEnemy dt gs) (gsEnemies gs)
   modify $ \s -> s { gsEnemies = enemies' }
 
--- Avanzar un enemigo hacia el jugador
+-- avanzar un enemigo hacia el jugador
 advanceEnemy :: Float -> GameState -> Enemy -> Enemy
 advanceEnemy dt gs e =
   let (px,py) = pPos (gsPlayer gs)
@@ -123,8 +127,8 @@ enemyDealDamage dt = do
   let p  = gsPlayer gs
       enemies = gsEnemies gs
       p' = foldl (applyEnemyHit dt) p enemies
-      phase' = if pHP p' <= 0 then GameOver else gsPhase gs --Nuevo
-  put gs { gsPlayer = p', gsPhase = phase'}  --Nuevo 
+      phase' = if pHP p' <= 0 then GameOver else gsPhase gs 
+  put gs { gsPlayer = p', gsPhase = phase'}  
 
 -- Aplicar daño de un enemigo al jugador
 applyEnemyHit :: Float -> Player -> Enemy -> Player
@@ -138,13 +142,13 @@ applyEnemyHit dt p e =
         then playerTakeDamage p dmg
         else p
 
---Genera un boss en el centro de la sala del boss (última sala)
+--genera un boss en el centro de la sala del boss (ultima sala)
 spawnBoss :: GameState -> Enemy
 spawnBoss gs =
-  let -- El boss aparece en el centro de la sala del boss (posEscalera)
+  let -- El boss aparece en el centro de la sala del boss 
       bossRoomCenter = posEscalera gs
       tiles = gsMap gs
-      -- Buscar posición válida cercana al centro
+      -- Buscar posición valida cercana al centro
       safePos = encontrarSueloCercano tiles bossRoomCenter
   in Enemy
       { ePos = safePos
@@ -152,7 +156,7 @@ spawnBoss gs =
       , eAtk = 20
       }
 
--- Si el centro es pared, busca el vecino más cercano que sea suelo
+-- Si el centro es pared, busca el vecino ms cercano que sea suelo
 encontrarSueloCercano :: TileMap -> Vec2 -> Vec2
 encontrarSueloCercano mapa (x, y)
     | isWalkable (x, y) mapa       = (x, y)           -- Centro OK
@@ -196,7 +200,7 @@ cleanupDeadEnemies = do
             , gsItems       = items'
             , gsRng         = genFinal
             , gsPhase       = BossFight
-            , gsBossMsgTime = 3.0  -- segundos de mensaje BOSS FIGHT
+            , gsBossMsgTime = 3.0  
             }
         else
           put gs
