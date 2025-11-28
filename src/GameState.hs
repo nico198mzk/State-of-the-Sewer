@@ -16,9 +16,12 @@ initPlayer startPos = Player
   , pSpeed       = 60
   , pCooldown    = 0
   , pInventory   = []
-  , pFacing      = DirDown      -- Iniciar mirando hacia abajo
-  , pAttackTimer = 0            -- Sin animación de ataque al inicio
+  , pFacing      = DirDown
+  , pAttackTimer = 0
+  , pHalfW       = 12.0   -- medio ancho del hitbox (ajusta si tu sprite es otro)
+  , pHalfH       = 12.0   -- medio alto del hitbox
   }
+
 
 -- Modificado para usar posición inicial del mapa, enemigos y posición del boss room
 emptyState :: Assets -> TileMap -> Vec2 -> [Enemy] -> Vec2 -> StdGen -> GameState

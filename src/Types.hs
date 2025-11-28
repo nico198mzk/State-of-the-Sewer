@@ -1,4 +1,4 @@
--- src/Types.hs
+-- src/Types.hs (arreglado por Kei)
 module Types where
 
 import Graphics.Gloss
@@ -12,6 +12,22 @@ tileSize :: Float
 tileSize = 32
 
 type Vec2 = (Float, Float)
+data Rect = Rect { rX :: Float, rY :: Float, rW :: Float, rH :: Float } deriving (Show, Eq)
+
+hitboxFromCenter :: Vec2 -> Float -> Float -> Rect
+hitboxFromCenter = rectFromCenter
+
+isHitboxWalkable :: Rect -> TileMap -> Bool
+isHitboxWalkable = isRectWalkable
+
+-- Reintroduzco initPlayerAtPos que algunos módulos esperan
+initPlayerAtPos :: Vec2 -> Player -> Player
+initPlayerAtPos newPos p = p
+  { pPos         = newPos
+  , pCooldown    = 0
+  , pAttackTimer = 0
+  }
+
 
 -- Dirección para combate direccional
 data Direction = DirUp | DirDown | DirLeft | DirRight
@@ -20,7 +36,7 @@ data Direction = DirUp | DirDown | DirLeft | DirRight
 data Tile
   = Void           -- Espacio vacío (no jugable)
   | FloorTile Int  -- Variante de textura (0-3)
-  | WallTile Int   -- Modificado: ahora acepta variante (0-3)
+  | WallTile Int   -- Variante de muro (0-3)
   | StairUp
   | StairDown
   deriving (Eq,Show)
@@ -35,8 +51,10 @@ data Player = Player
   , pSpeed       :: Float
   , pCooldown    :: Float
   , pInventory   :: [Item]
-  , pFacing      :: Direction    -- Nueva: dirección hacia donde mira
-  , pAttackTimer :: Float        -- Nueva: tiempo de animación de ataque
+  , pFacing      :: Direction
+  , pAttackTimer :: Float
+  , pHalfW       :: Float   -- mitad de ancho del hitbox
+  , pHalfH       :: Float   -- mitad de alto del hitbox
   }
   deriving (Show)
 
@@ -53,7 +71,7 @@ data Item
   | BoostSpeed Float
   deriving (Show,Eq)
 
-data GamePhase  -- Nuevo: ahora el juego tiene fase 
+data GamePhase
   = StartScreen
   | ControlsScreen
   | Playing
@@ -65,17 +83,17 @@ data GamePhase  -- Nuevo: ahora el juego tiene fase
 data Assets = Assets
   { aPlayer       :: Picture
   , aEnemy        :: Picture
-  , aEnemySlime   :: Picture  -- Nueva: imagen para enemigos Slime
-  , aBoss         :: Picture  -- nueva: imagen para el boss 
-  , aTileFloors   :: [Picture]  -- Lista de variantes de suelo (Piso 1)
-  , aTileFloors2  :: [Picture]  -- Tiles del Piso 2
-  , aTileFloors3  :: [Picture]  -- Tiles del Piso 3
-  , aTileWalls    :: [Picture]  -- Modificado: ahora es una lista de variantes
+  , aEnemySlime   :: Picture
+  , aBoss         :: Picture
+  , aTileFloors   :: [Picture]
+  , aTileFloors2  :: [Picture]
+  , aTileFloors3  :: [Picture]
+  , aTileWalls    :: [Picture]
   , aItemFood     :: Picture
-  , aSword        :: Picture    -- Nueva: imagen de la espada
-  , aStairs       :: Picture    -- Sprite de escalera
-  , aFinalScreen :: Picture
-  , aStartScreen :: Picture
+  , aSword        :: Picture
+  , aStairs       :: Picture
+  , aFinalScreen  :: Picture
+  , aStartScreen  :: Picture
   , aControlsScreen :: Picture
   }
 
@@ -90,21 +108,56 @@ data GameState = GameState
   , gsAssets       :: Assets
   , gsKeys         :: KeysDown
   , gsRng          :: StdGen
-  , gsPhase        :: GamePhase -- nuevo
+  , gsPhase        :: GamePhase
   , gsBossMsgTime  :: Float
-  , nivelActual    :: Int           -- Nivel actual (1, 2 o 3)
-  , posEscalera    :: Vec2          -- Posición fija de la escalera
-  , jefeDerrotado  :: Bool          -- True si el jefe del nivel fue derrotado
+  , nivelActual    :: Int
+  , posEscalera    :: Vec2
+  , jefeDerrotado  :: Bool
   }
 
+
+-- construye un rect a partir del centro (cx,cy) y medio ancho/alto
+rectFromCenter :: Vec2 -> Float -> Float -> Rect
+rectFromCenter (cx,cy) hw hh = Rect (cx - hw) (cy - hh) (2*hw) (2*hh)
+
+tilesCoveredByRect :: Float -> Rect -> [(Int,Int)]
+tilesCoveredByRect tileSize (Rect x y w h) =
+  let left   = floor (x / tileSize)
+      right  = floor ((x + w - 1e-6) / tileSize)
+      top    = floor (-(y + h - 1e-6) / tileSize)
+      bottom = floor (-(y) / tileSize)
+  in [ (tx,ty) | tx <- [left..right], ty <- [top..bottom] ]
+
+
+
+
+-- Comprueba que un rect no solape tiles no transitables (TileMap = [[Tile]])
+isRectWalkable :: Rect -> TileMap -> Bool
+isRectWalkable rect tiles =
+  let tilesIdx = tilesCoveredByRect tileSize rect
+      h  = length tiles
+      w  = if null tiles then 0 else length (head tiles)
+      inBounds (tx,ty) = tx >= 0 && ty >= 0 && tx < w && ty < h
+      tileOk (tx,ty) =
+        if not (inBounds (tx,ty)) then False
+        else let t = tiles !! ty !! tx in tileIsWalkable t
+  in all tileOk tilesIdx
+
+-- VERSIÓN PUNTUAL (compatibilidad) para módulos que aún la usan (Combat, etc.)
 isWalkable :: Vec2 -> TileMap -> Bool
 isWalkable (px,py) tiles =
   let tx = floor (px / tileSize)
-      ty = floor (-(py) / tileSize)
+      ty = floor (-(py) / tileSize)  -- convención Y del proyecto
       h  = length tiles
       w  = if null tiles then 0 else length (head tiles)
-  in tx >= 0 && ty >= 0 && tx < w && ty < h && isFloor (tiles !! ty !! tx)
-  where
-    isFloor (FloorTile _) = True
-    isFloor _             = False
-    
+  in tx >= 0 && ty >= 0 && tx < w && ty < h && tileIsWalkable (tiles !! ty !! tx)
+
+-- Determina si un Tile es "transitable" — adapta según tus constructores de Tile
+tileIsWalkable :: Tile -> Bool
+tileIsWalkable t = case t of
+  FloorTile _ -> True
+  StairUp     -> True
+  StairDown   -> True
+  -- Void, WallTile y otros no caminables
+  _           -> False
+

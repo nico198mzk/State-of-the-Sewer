@@ -45,9 +45,12 @@ updateWorldM dt = do
       enemyDealDamage dt
       cleanupDeadEnemies
 
+
+
 -- Mover al jugador basado en las teclas presionadas
 movePlayerByKeys :: Float -> State GameState ()
 movePlayerByKeys dt = do
+  -- movimiento por ejes usando hitbox (X primero, luego Y)
   gs <- get
   let (u,d,l,r) = gsKeys gs
       p  = gsPlayer gs
@@ -55,22 +58,34 @@ movePlayerByKeys dt = do
       (x,y) = pPos p
       dx = (if r then 1 else 0) - (if l then 1 else 0)
       dy = (if u then 1 else 0) - (if d then 1 else 0)
-      newPos = (x + dx*sp, y + dy*sp)
-      -- Actualizar timer de ataque
+      desiredX = x + dx * sp
+      desiredY = y + dy * sp
       newTimer = max 0 (pAttackTimer p - dt)
-  if isWalkable newPos (gsMap gs) --poder hacer que el jugador recoja los items
-    then do
-      let pMoved = p {pPos = newPos, pAttackTimer = newTimer}
-          (picked, remaining) =
-            partition (\(pos, _) -> distance pos newPos < 16) (gsItems gs)
-          
-          pickedItems = map snd picked
-        
-          pUpdated = foldl applyItem pMoved pickedItems
-      put gs {gsPlayer = pUpdated, gsItems = remaining }
-    else 
-      modify $ \s -> s { gsPlayer = p { pAttackTimer = newTimer } }
 
+      hbAfterX  = hitboxFromCenter (desiredX, y) (pHalfW p) (pHalfH p)
+      hbAfterY  = hitboxFromCenter (x, desiredY) (pHalfW p) (pHalfH p)
+      hbAfterXY = hitboxFromCenter (desiredX, desiredY) (pHalfW p) (pHalfH p)
+
+      tiles = gsMap gs
+
+  -- función local monádica para aplicar movimiento y recoger items
+  let applyMoveAndPick :: (Float,Float) -> State GameState ()
+      applyMoveAndPick newPos = do
+        gs' <- get
+        let pMoved = p { pPos = newPos, pAttackTimer = newTimer }
+            (picked, remaining) = partition (\(pos, _) -> distance pos newPos < 16) (gsItems gs')
+            pickedItems = map snd picked
+            pUpdated = foldl applyItem pMoved pickedItems
+        put gs' { gsPlayer = pUpdated, gsItems = remaining }
+
+  -- comprobaciones de hitbox y llamadas a la función monádica
+  if isHitboxWalkable hbAfterX tiles
+    then if isHitboxWalkable hbAfterXY tiles
+           then applyMoveAndPick (desiredX, desiredY)
+           else applyMoveAndPick (desiredX, y)
+    else if isHitboxWalkable hbAfterY tiles
+           then applyMoveAndPick (x, desiredY)
+           else modify $ \s -> s { gsPlayer = p { pAttackTimer = newTimer } }
 
 
 -- Actualizar posiciones de todos los enemigos
@@ -270,11 +285,3 @@ avanzarNivel gs =
          , posEscalera   = bossRoomPos  -- Escalera en la sala del boss
          , jefeDerrotado = False
          }
-
--- Inicializar jugador en nueva posición manteniendo stats
-initPlayerAtPos :: Vec2 -> Player -> Player
-initPlayerAtPos newPos p = p
-  { pPos         = newPos
-  , pCooldown    = 0
-  , pAttackTimer = 0
-  }

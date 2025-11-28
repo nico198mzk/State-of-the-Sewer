@@ -2,7 +2,7 @@
 module WorldGen where
 
 import System.Random (StdGen, randomR, split, mkStdGen)
-import Types
+import Types hiding (Rect)
 
 -- Dimensiones del mapa
 mapWidth, mapHeight :: Int
