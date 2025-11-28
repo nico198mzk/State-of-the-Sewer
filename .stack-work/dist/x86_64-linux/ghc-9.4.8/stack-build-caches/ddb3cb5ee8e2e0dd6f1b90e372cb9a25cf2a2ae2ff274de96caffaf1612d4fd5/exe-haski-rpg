@@ -1,22 +1,22 @@
 /home/nico/UACH/paradigmas/State-of-the-Sewer/haski-rpg.cabal:
   hash: 22e5d30b3d5eb9af7632c3ee7ab64a6aa8e23cc22f2f584416d03d4ccdd4004f
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Assets.hs:
-  hash: 3d6c550fce7fadaf88f9700fed011f540ffad5a97bd31cd505794b59c791e836
+  hash: 22e10577a66808f9d4da526bbfe0824840d9ffa03d3e8c963a4e6867ce3e3e70
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Combat.hs:
   hash: 9508cc7b4f9a24327a118e3725ff634604a162b2f4ec6be493b117c509533c3a
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/GameState.hs:
-  hash: d03f2bf0caea17a447e5f963bf1ff260e9ac9aa5c4c13606ca77580da85e0dc6
+  hash: ccc7f52c9db794004b3b56ede57c86a4be3726debfd1eeb48282f4a3623324d6
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Input.hs:
   hash: 45a0e582e42e439dde4d555c8acc2a3f4ccd8a1a07ccd5af7d3e8d7b39ef1cba
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Inventory.hs:
   hash: 249cb3085315329e8991d4e4fd860cede5fe81b4db518343a4b18ec42a9c5d7e
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Main.hs:
-  hash: 8237e4166415e18dc31ce08da68f293e09cb6b37c108e1ec3ca0d3f59d3bd778
+  hash: 734e98b136af09d2dd21cdd1f6009e1f5cab12248924f4c5d9d4f806f730c218
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Render.hs:
-  hash: 3f3b4767e45fb479690de1430f58964ed786d95bc128e218db849f0c894d9d53
+  hash: 048bb5673808723a81b8810ff9de74f1c1a6c40214a9fe61a413fbc645db149c
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Types.hs:
-  hash: 1edf91c66b1c58d47c4a44e2576ce7ea2c7bbfe3ee235dea3c9d46bbb9baccb8
+  hash: 66505a9d968766750575eb73b0ccf140128e30da0fda78ab3221eb6b3b4de274
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/Update.hs:
-  hash: 63a312182b815fc22a2c46ff68a16b7a509d9d370d36ff3bcc473485fba54254
+  hash: d55823ecc25aaf4be67dc97b1d209ced59fd98b136691418b123dc9793d87fbf
 /home/nico/UACH/paradigmas/State-of-the-Sewer/src/WorldGen.hs:
-  hash: 5daa73150ad39b1346e0d9fda38190a800a05def35844f477820b960bd862231
+  hash: d0401a101cf8d3b7ba973ad6282b117c3a14e67bdc3c47ba4bee7f7505433afc

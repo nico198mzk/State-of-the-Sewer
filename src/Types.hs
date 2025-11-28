@@ -61,29 +61,35 @@ data GamePhase  -- Nuevo: ahora el juego tiene fase
   deriving (Eq, Show)
 
 data Assets = Assets
-  { aPlayer     :: Picture
-  , aEnemy      :: Picture
-  , aEnemySlime :: Picture  -- Nueva: imagen para enemigos Slime
-  , aBoss       :: Picture --nueva: imagen para el boss 
-  , aTileFloors :: [Picture]  -- Lista de variantes de suelo
-  , aTileWalls  :: [Picture]  -- Modificado: ahora es una lista de variantes
-  , aItemFood   :: Picture
-  , aSword      :: Picture    -- Nueva: imagen de la espada
+  { aPlayer       :: Picture
+  , aEnemy        :: Picture
+  , aEnemySlime   :: Picture  -- Nueva: imagen para enemigos Slime
+  , aBoss         :: Picture  -- nueva: imagen para el boss 
+  , aTileFloors   :: [Picture]  -- Lista de variantes de suelo (Piso 1)
+  , aTileFloors2  :: [Picture]  -- Tiles del Piso 2
+  , aTileFloors3  :: [Picture]  -- Tiles del Piso 3
+  , aTileWalls    :: [Picture]  -- Modificado: ahora es una lista de variantes
+  , aItemFood     :: Picture
+  , aSword        :: Picture    -- Nueva: imagen de la espada
+  , aStairs       :: Picture    -- Sprite de escalera
   }
 
 type KeysDown = (Bool, Bool, Bool, Bool)
 
 data GameState = GameState
-  { gsPlayer  :: Player
-  , gsEnemies :: [Enemy]
-  , gsItems   :: [(Vec2, Item)]
-  , gsMap     :: TileMap
-  , gsFloor   :: Int
-  , gsAssets  :: Assets
-  , gsKeys    :: KeysDown
-  , gsRng     :: StdGen
-  , gsPhase   :: GamePhase -- nuevo
-  , gsBossMsgTime :: Float
+  { gsPlayer       :: Player
+  , gsEnemies      :: [Enemy]
+  , gsItems        :: [(Vec2, Item)]
+  , gsMap          :: TileMap
+  , gsFloor        :: Int
+  , gsAssets       :: Assets
+  , gsKeys         :: KeysDown
+  , gsRng          :: StdGen
+  , gsPhase        :: GamePhase -- nuevo
+  , gsBossMsgTime  :: Float
+  , nivelActual    :: Int           -- Nivel actual (1, 2 o 3)
+  , posEscalera    :: Vec2          -- Posición fija de la escalera
+  , jefeDerrotado  :: Bool          -- True si el jefe del nivel fue derrotado
   }
 
 isWalkable :: Vec2 -> TileMap -> Bool

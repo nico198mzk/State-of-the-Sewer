@@ -3,10 +3,12 @@ module Update where
 
 import Types
 import Combat
+import Control.Monad (when)
 import Control.Monad.State
 import Inventory
 import Data.List (partition)
-import System.Random (StdGen, randomR)
+import System.Random (StdGen, randomR, split)
+import WorldGen (generateMap)
 
 -- Función principal compatible con Gloss, usa execState internamente
 updateWorld :: Float -> GameState -> GameState
@@ -31,6 +33,7 @@ updateWorldM dt = do
       updateEnemies dt
       enemyDealDamage dt
       cleanupDeadEnemies
+      checkStairTransition
 
 -- Mover al jugador basado en las teclas presionadas
 movePlayerByKeys :: Float -> State GameState ()
@@ -110,32 +113,33 @@ applyEnemyHit dt p e =
         then playerTakeDamage p dmg
         else p
 
---Genera un boss 
+--Genera un boss en el centro de la sala del boss (última sala)
 spawnBoss :: GameState -> Enemy
 spawnBoss gs =
-  let (px, py) = pPos (gsPlayer gs)
+  let -- El boss aparece en el centro de la sala del boss (posEscalera)
+      bossRoomCenter = posEscalera gs
       tiles = gsMap gs
-      candidates =
-        [ (px + 150, py)
-        , (px - 150, py)
-        , (px, py + 150)
-        , (px, py - 150)
-        , (px + 150, py + 150)
-        , (px + 150, py - 150)
-        , (px - 150, py + 150)
-        , (px - 150, py - 150)
-        , (px, py)           -- ultima opcion: encima del jugador
-        ]
-      valid = filter (\pos -> isWalkable pos tiles) candidates
-      (bx, by) =
-        case valid of 
-          (p:_) -> p     -- primera posicion caminable
-          []    -> (px, py) -- como emergencia spawnea donde esta el jugador
+      -- Buscar posición válida cercana al centro
+      safePos = encontrarSueloCercano tiles bossRoomCenter
   in Enemy
-      { ePos = (px + 150, py)
+      { ePos = safePos
       , eHP  = 300
       , eAtk = 20
       }
+
+-- Si el centro es pared, busca el vecino más cercano que sea suelo
+encontrarSueloCercano :: TileMap -> Vec2 -> Vec2
+encontrarSueloCercano mapa (x, y)
+    | isWalkable (x, y) mapa       = (x, y)           -- Centro OK
+    | isWalkable (x + 32, y) mapa  = (x + 32, y)      -- Derecha
+    | isWalkable (x - 32, y) mapa  = (x - 32, y)      -- Izquierda
+    | isWalkable (x, y + 32) mapa  = (x, y + 32)      -- Arriba
+    | isWalkable (x, y - 32) mapa  = (x, y - 32)      -- Abajo
+    | isWalkable (x + 32, y + 32) mapa = (x + 32, y + 32)  -- Diagonal
+    | isWalkable (x - 32, y - 32) mapa = (x - 32, y - 32)  -- Diagonal
+    | isWalkable (x + 32, y - 32) mapa = (x + 32, y - 32)  -- Diagonal
+    | isWalkable (x - 32, y + 32) mapa = (x - 32, y + 32)  -- Diagonal
+    | otherwise = (x, y)  -- Fallback (no debería pasar con salas bien generadas)
 
 
 -- Eliminar enemigos muertos
@@ -176,15 +180,16 @@ cleanupDeadEnemies = do
             , gsRng     = genFinal
             }
 
-    -- Fase de jefe  si muere el jefe sale Victory
+    -- Fase de jefe: si muere el jefe, marcar como derrotado (no victoria inmediata)
     BossFight ->
       if null alive0
         then
           put gs
-            { gsEnemies = []
-            , gsItems   = items'
-            , gsRng     = genFinal
-            , gsPhase   = Victory
+            { gsEnemies    = []
+            , gsItems      = items'
+            , gsRng        = genFinal
+            , gsPhase      = Playing  -- Volver a Playing para buscar escalera
+            , jefeDerrotado = True    -- Marcar jefe como derrotado
             }
         else
           put gs
@@ -214,7 +219,52 @@ spawnDrops (e:es) gen =
       newItem = if r <= 30 then [ (ePos e, item) ] else []
   in (newItem ++ restItems, gen3)
 
---funcion de distancia para saber cuando el jugador esta cerca del item
+-- Función de distancia para saber cuando el jugador esta cerca del item
 distance :: Vec2 -> Vec2 -> Float
 distance (x1,y1) (x2,y2) =
   sqrt ((x1 - x2)^2 + (y1 - y2)^2)
+
+-- Verificar si el jugador está cerca de la escalera y puede transicionar
+checkStairTransition :: State GameState ()
+checkStairTransition = do
+  gs <- get
+  let playerPos = pPos (gsPlayer gs)
+      stairPos  = posEscalera gs
+      dist      = distance playerPos stairPos
+      canTransition = dist < 30 && jefeDerrotado gs
+  when canTransition $ do
+    let newState = avanzarNivel gs
+    put newState
+
+-- Avanzar al siguiente nivel
+avanzarNivel :: GameState -> GameState
+avanzarNivel gs =
+  let nivel = nivelActual gs
+      nuevoNivel = nivel + 1
+      oldGen = gsRng gs
+      (mapGen, newGen) = split oldGen
+      assets = gsAssets gs
+      -- Generar nuevo mapa para el nuevo nivel (incluye posición del boss room)
+      (newMap, startPos, enemies, bossRoomPos) = generateMap mapGen
+  in if nuevoNivel > 3
+       then gs { gsPhase = Victory }  -- Victoria si supera nivel 3
+       else gs
+         { gsPlayer      = initPlayerAtPos startPos (gsPlayer gs)  -- Spawn en inicio del nuevo mapa
+         , gsEnemies     = enemies
+         , gsItems       = []
+         , gsMap         = newMap
+         , gsRng         = newGen
+         , gsPhase       = Playing
+         , gsBossMsgTime = 0
+         , nivelActual   = nuevoNivel
+         , posEscalera   = bossRoomPos  -- Escalera en la sala del boss
+         , jefeDerrotado = False
+         }
+
+-- Inicializar jugador en nueva posición manteniendo stats
+initPlayerAtPos :: Vec2 -> Player -> Player
+initPlayerAtPos newPos p = p
+  { pPos         = newPos
+  , pCooldown    = 0
+  , pAttackTimer = 0
+  }

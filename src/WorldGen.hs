@@ -43,8 +43,9 @@ roomDistance r1 r2 =
       dy = fromIntegral (y2 - y1)
   in sqrt (dx * dx + dy * dy)
 
--- Genera un mapa con salas, pasillos y enemigos, devuelve (mapa, posición inicial, enemigos)
-generateMap :: StdGen -> (TileMap, Vec2, [Enemy])
+-- Genera un mapa con salas, pasillos y enemigos
+-- Devuelve: (mapa, posición inicial, enemigos, posición sala del boss)
+generateMap :: StdGen -> (TileMap, Vec2, [Enemy], Vec2)
 generateMap gen =
   let -- Dividir generador para diferentes propósitos
       (roomGen, enemyGen) = split gen
@@ -70,7 +71,12 @@ generateMap gen =
       -- Posición inicial (centro de la primera sala)
       startPos = roomToWorldPos (head rooms)
       
-  in (finalMap, startPos, enemies)
+      -- Posición de la sala del boss (última sala generada)
+      bossRoomPos = if null rooms 
+                      then startPos  -- Fallback a posición inicial
+                      else roomToWorldPos (last rooms)
+      
+  in (finalMap, startPos, enemies, bossRoomPos)
 
 -- Convierte posición de sala a coordenadas del mundo
 roomToWorldPos :: Rect -> Vec2

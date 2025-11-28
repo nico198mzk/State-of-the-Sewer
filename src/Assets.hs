@@ -46,11 +46,23 @@ loadAssets = do
   sword <- loadPNG "assets/wood_sword.png"   -- Nueva: cargar espada
   b <- loadPNG "assets/rat_enemy.png"
   
-  -- Cargar 4 variantes de suelo
+  -- Cargar 4 variantes de suelo (Piso 1)
   fl0 <- loadPNG "assets/Layer 1_tile2.png"
   fl1 <- loadPNG "assets/Layer 1_tile1.png"
   fl2 <- loadPNG "assets/Layer 1_tile3.png"
   fl3 <- loadPNG "assets/Layer 1_tile4.png"
+  
+  -- Cargar 4 variantes de suelo (Piso 2)
+  fl2_0 <- loadPNG "assets/Layer 2_tiles1.png"
+  fl2_1 <- loadPNG "assets/Layer 2_tiles2.png"
+  fl2_2 <- loadPNG "assets/Layer 2_tiles3.png"
+  fl2_3 <- loadPNG "assets/Layer 2_tiles4.png"
+  
+  -- Cargar 4 variantes de suelo (Piso 3)
+  fl3_0 <- loadPNG "assets/Layer 3_tile1.png"
+  fl3_1 <- loadPNG "assets/Layer 3_tile2.png"
+  fl3_2 <- loadPNG "assets/Layer 3_tile3.png"
+  fl3_3 <- loadPNG "assets/Layer 3_tile4.png"
   
   -- Cargar 4 variantes de muro
   wl0 <- loadPNG "assets/wall0.png"
@@ -59,15 +71,21 @@ loadAssets = do
   wl3 <- loadPNG "assets/wall3.png"
   
   it  <- loadPNG "assets/item_food.png"
+  
+  -- Cargar sprite de escalera
+  stairs <- loadPNG "assets/Stairs.png"
 
   return Assets
-    { aPlayer     = p
-    , aEnemy      = e
-    , aEnemySlime = slime  -- Nueva: agregar al Assets
-    , aBoss       = b   -- nuevo
-    , aTileFloors = [fl0, fl1, fl2, fl3]
-    , aTileWalls  = [wl0, wl1, wl2, wl3]  -- Lista de variantes de muro
-    , aItemFood   = it
-    , aSword      = sword  -- Nueva: agregar espada
+    { aPlayer       = p
+    , aEnemy        = e
+    , aEnemySlime   = slime  -- Nueva: agregar al Assets
+    , aBoss         = b   -- nuevo
+    , aTileFloors   = [fl0, fl1, fl2, fl3]
+    , aTileFloors2  = [fl2_0, fl2_1, fl2_2, fl2_3]  -- Tiles Piso 2
+    , aTileFloors3  = [fl3_0, fl3_1, fl3_2, fl3_3]  -- Tiles Piso 3
+    , aTileWalls    = [wl0, wl1, wl2, wl3]  -- Lista de variantes de muro
+    , aItemFood     = it
+    , aSword        = sword  -- Nueva: agregar espada
+    , aStairs       = stairs  -- Sprite de escalera
     }
   

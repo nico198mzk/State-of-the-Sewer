@@ -123,14 +123,31 @@ renderMap gs =
       playerTileY = floor (-(py) / tileSize)
       cullRadius = 15
       manhattanDist x y = abs (x - playerTileX) + abs (y - playerTileY)
-  in pictures
-       [ translate (fromIntegral x * tileSize)
-                   (-(fromIntegral y * tileSize))
-                   (tilePic gs tile)
-       | (y, row) <- zip [0..] (gsMap gs)
-       , (x, tile) <- zip [0..] row
-       , manhattanDist x y <= cullRadius
-       ]
+      -- Dibujar tiles del mapa
+      mapPics = 
+        [ translate (fromIntegral x * tileSize)
+                    (-(fromIntegral y * tileSize))
+                    (tilePic gs tile)
+        | (y, row) <- zip [0..] (gsMap gs)
+        , (x, tile) <- zip [0..] row
+        , manhattanDist x y <= cullRadius
+        ]
+      -- Dibujar escalera (solo visible cuando el jefe fue derrotado)
+      (escX, escY) = posEscalera gs
+      stairsPic = if jefeDerrotado gs
+                    then translate escX escY (aStairs (gsAssets gs))
+                    else Blank  -- Invisible mientras el jefe está vivo
+  in pictures (mapPics ++ [stairsPic])
+
+-- Obtener los tiles correctos según el nivel actual
+obtenerTilesDelNivel :: GameState -> [Picture]
+obtenerTilesDelNivel gs =
+  let assets = gsAssets gs
+  in case nivelActual gs of
+       1 -> aTileFloors assets   -- Piso 1
+       2 -> aTileFloors2 assets  -- Piso 2
+       3 -> aTileFloors3 assets  -- Piso 3
+       _ -> aTileFloors assets   -- Default: Piso 1
 
 --Funcion para la barra de vida del jugador
 renderHUD :: GameState -> Picture
@@ -151,6 +168,11 @@ renderHUD gs =
       hpText = show (pHP p) ++ " / " ++ show (pMaxHP p)
       atkText = "ATK: " ++ show (pAtk p)
       spdText = "SPD: " ++ show (round (pSpeed p):: Int)
+      
+      -- Indicador de nivel actual
+      nivel = nivelActual gs
+      nivelText = "PISO " ++ show nivel ++ "/3"
+      jefeDerr = if jefeDerrotado gs then " [ESCALERA ACTIVA]" else ""
 
   in translate x y $
       pictures
@@ -167,6 +189,9 @@ renderHUD gs =
         , translate (-barW/2)(-barH -30) $
             scale 0.1 0.1 $
               color white (text spdText)
+        , translate (-barW/2)(-barH -50) $
+            scale 0.1 0.1 $
+              color yellow (text (nivelText ++ jefeDerr))
         ]
 
 -- Función auxiliar segura para acceder a lista
@@ -178,9 +203,10 @@ safeIndex xs n
 tilePic :: GameState -> Tile -> Picture
 tilePic _ Void = Blank  -- No renderizar tiles vacíos
 tilePic gs (FloorTile variant) =
-  case safeIndex (aTileFloors (gsAssets gs)) variant of
-    Just pic -> pic
-    Nothing  -> color green (rectangleSolid tileSize tileSize)  -- Fallback
+  let tiles = obtenerTilesDelNivel gs  -- Usar tiles según nivel actual
+  in case safeIndex tiles variant of
+       Just pic -> pic
+       Nothing  -> color green (rectangleSolid tileSize tileSize)  -- Fallback
 tilePic gs (WallTile variant) =
   case safeIndex (aTileWalls (gsAssets gs)) variant of
     Just pic -> pic
