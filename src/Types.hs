@@ -55,6 +55,7 @@ data Item
 
 data GamePhase  -- Nuevo: ahora el juego tiene fase 
   = Playing
+  | BossFight
   | GameOver
   | Victory
   deriving (Eq, Show)
@@ -63,6 +64,7 @@ data Assets = Assets
   { aPlayer     :: Picture
   , aEnemy      :: Picture
   , aEnemySlime :: Picture  -- Nueva: imagen para enemigos Slime
+  , aBoss       :: Picture --nueva: imagen para el boss 
   , aTileFloors :: [Picture]  -- Lista de variantes de suelo
   , aTileWalls  :: [Picture]  -- Modificado: ahora es una lista de variantes
   , aItemFood   :: Picture
@@ -81,6 +83,7 @@ data GameState = GameState
   , gsKeys    :: KeysDown
   , gsRng     :: StdGen
   , gsPhase   :: GamePhase -- nuevo
+  , gsBossMsgTime :: Float
   }
 
 isWalkable :: Vec2 -> TileMap -> Bool
@@ -93,3 +96,4 @@ isWalkable (px,py) tiles =
   where
     isFloor (FloorTile _) = True
     isFloor _             = False
+    

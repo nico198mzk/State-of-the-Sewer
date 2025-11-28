@@ -140,6 +140,7 @@ generateOneEnemy room gen =
       
   in (Enemy (worldX, worldY) hp atk, gen4)
 
+
 -- Crea un mapa lleno de Void
 createVoidMap :: TileMap
 createVoidMap = replicate mapHeight (replicate mapWidth Void)

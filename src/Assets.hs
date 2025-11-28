@@ -44,6 +44,7 @@ loadAssets = do
   e   <- loadPNG "assets/rat_enemy.png"
   slime <- loadPNG "assets/slime_enemy.png"  -- Nueva: cargar slime
   sword <- loadPNG "assets/wood_sword.png"   -- Nueva: cargar espada
+  b <- loadPNG "assets/rat_enemy.png"
   
   -- Cargar 4 variantes de suelo
   fl0 <- loadPNG "assets/Layer 1_tile2.png"
@@ -63,8 +64,10 @@ loadAssets = do
     { aPlayer     = p
     , aEnemy      = e
     , aEnemySlime = slime  -- Nueva: agregar al Assets
+    , aBoss       = b   -- nuevo
     , aTileFloors = [fl0, fl1, fl2, fl3]
     , aTileWalls  = [wl0, wl1, wl2, wl3]  -- Lista de variantes de muro
     , aItemFood   = it
     , aSword      = sword  -- Nueva: agregar espada
     }
+  

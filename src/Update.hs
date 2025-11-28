@@ -6,6 +6,7 @@ import Combat
 import Control.Monad.State
 import Inventory
 import Data.List (partition)
+import System.Random (StdGen, randomR)
 
 -- Función principal compatible con Gloss, usa execState internamente
 updateWorld :: Float -> GameState -> GameState
@@ -18,7 +19,14 @@ updateWorldM dt = do
   case gsPhase gs of -- Nuevo
     GameOver -> return () -- Nuevo
     Victory  -> return () -- Nuevo
-    Playing  -> do -- Nuevo
+    Playing  -> gameLogic  gs-- Nuevo
+    BossFight -> do
+      let newTime= max 0 (gsBossMsgTime gs - dt)
+      put gs {gsBossMsgTime = newTime}
+
+      gameLogic gs
+  where
+    gameLogic gs = do
       movePlayerByKeys dt
       updateEnemies dt
       enemyDealDamage dt
@@ -67,8 +75,12 @@ advanceEnemy dt gs e =
       dx   = px - ex
       dy   = py - ey
       dist = sqrt (dx*dx + dy*dy)
-      speed = 25 * dt
-  in if dist < 250 && dist > 20
+      baseSpeed =
+        if gsPhase gs == BossFight
+          then 60
+          else 25
+      speed = baseSpeed * dt
+  in if dist < 400 && dist > 5
        then
          let newPos = (ex + dx/dist * speed, ey + dy/dist * speed)
          in if isWalkable newPos (gsMap gs)
@@ -98,18 +110,109 @@ applyEnemyHit dt p e =
         then playerTakeDamage p dmg
         else p
 
+--Genera un boss 
+spawnBoss :: GameState -> Enemy
+spawnBoss gs =
+  let (px, py) = pPos (gsPlayer gs)
+      tiles = gsMap gs
+      candidates =
+        [ (px + 150, py)
+        , (px - 150, py)
+        , (px, py + 150)
+        , (px, py - 150)
+        , (px + 150, py + 150)
+        , (px + 150, py - 150)
+        , (px - 150, py + 150)
+        , (px - 150, py - 150)
+        , (px, py)           -- ultima opcion: encima del jugador
+        ]
+      valid = filter (\pos -> isWalkable pos tiles) candidates
+      (bx, by) =
+        case valid of 
+          (p:_) -> p     -- primera posicion caminable
+          []    -> (px, py) -- como emergencia spawnea donde esta el jugador
+  in Enemy
+      { ePos = (px + 150, py)
+      , eHP  = 300
+      , eAtk = 20
+      }
+
+
 -- Eliminar enemigos muertos
 cleanupDeadEnemies :: State GameState ()
 cleanupDeadEnemies = do
-  gs <- get 
-  let alive = filter (\e -> eHP e > 0) (gsEnemies gs)
-      hadEnemies = not (null (gsEnemies gs))
+  gs <- get
 
-      newPhase =
-        if hadEnemies && null alive && gsPhase gs == Playing
-          then Victory
-          else gsPhase gs
-  put gs { gsEnemies = alive, gsPhase = newPhase}
+  let allEnemies          = gsEnemies gs
+      (dead, alive0)      = partition (\e -> eHP e <= 0) allEnemies
+      hadEnemies          = not (null allEnemies)
+
+      gen0                = gsRng gs
+      (newItems, genFinal) =
+        if null dead
+          then ([], gen0)
+          else spawnDrops dead gen0
+
+      items'              = gsItems gs ++ newItems
+
+  case gsPhase gs of
+
+    -- Fase normal: si mueren todos los enemigos → boss
+    Playing ->
+      if hadEnemies && null alive0
+        then do
+          let boss = spawnBoss gs
+          put gs
+            { gsEnemies     = [boss]
+            , gsItems       = items'
+            , gsRng         = genFinal
+            , gsPhase       = BossFight
+            , gsBossMsgTime = 3.0  -- segundos de mensaje BOSS FIGHT
+            }
+        else
+          put gs
+            { gsEnemies = alive0
+            , gsItems   = items'
+            , gsRng     = genFinal
+            }
+
+    -- Fase de jefe  si muere el jefe sale Victory
+    BossFight ->
+      if null alive0
+        then
+          put gs
+            { gsEnemies = []
+            , gsItems   = items'
+            , gsRng     = genFinal
+            , gsPhase   = Victory
+            }
+        else
+          put gs
+            { gsEnemies = alive0
+            , gsItems   = items'
+            , gsRng     = genFinal
+            }
+
+    -- GameOver, Victory, etc: solo limpia y aplica drops
+    _ ->
+      put gs
+        { gsEnemies = alive0
+        , gsItems   = items'
+        , gsRng     = genFinal
+        }
+
+spawnDrops :: [Enemy] -> StdGen -> ([(Vec2, Item)], StdGen)
+spawnDrops [] gen = ([], gen)
+spawnDrops (e:es) gen =
+  let (r, gen1) = randomR (1,100 :: Int) gen
+      (t, gen2) = randomR (1,3 :: Int) gen1  -- elige tipo de item 1..3
+      item = case t of
+               1 -> Heal 20
+               2 -> BoostAtk 5
+               _ -> BoostSpeed 10
+      (restItems, gen3) = spawnDrops es gen2
+      newItem = if r <= 30 then [ (ePos e, item) ] else []
+  in (newItem ++ restItems, gen3)
 
 --funcion de distancia para saber cuando el jugador esta cerca del item
 distance :: Vec2 -> Vec2 -> Float

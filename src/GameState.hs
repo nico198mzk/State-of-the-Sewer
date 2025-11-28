@@ -38,6 +38,7 @@ emptyState assets m startPos enemies gen =
     , gsKeys    = (False, False, False, False)
     , gsRng     = gen
     , gsPhase   = Playing -- Nuevo
+    , gsBossMsgTime = 0
     }
 
 --Permite reiniciar generando nuevo mapa 
@@ -51,3 +52,4 @@ resetGame gs =
       (newMap, startPos, enemies) = generateMap newGen
 
   in emptyState assets newMap startPos enemies newGen
+  

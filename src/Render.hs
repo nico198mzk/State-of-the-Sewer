@@ -42,6 +42,14 @@ render gs =
             translate (-240) 0 $
               scale 0.3 0.3 $
                 makeThickText "VICTORIA" white
+          
+          BossFight ->
+            if gsBossMsgTime gs > 0
+              then
+                translate (-180) 200 $
+                  scale 0.2 0.2 $
+                    makeThickText "BOSS FIGHT" red
+            else Blank
 
           Playing  -> Blank
       
@@ -90,7 +98,14 @@ renderPlayer gs =
 renderEnemies :: GameState -> Picture
 renderEnemies gs =
   pictures
-    [ translate x y (aEnemySlime (gsAssets gs))  -- Usar imagen de slime
+    [ if gsPhase gs == BossFight
+        then
+          translate x y $
+            scale 1.5 1.5 $           -- boss más grande
+              aBoss (gsAssets gs)     -- sprite del boss
+        else
+          translate x y $
+            aEnemySlime (gsAssets gs) -- slimes normales
     | Enemy (x,y) _ _ <- gsEnemies gs
     ]
 
