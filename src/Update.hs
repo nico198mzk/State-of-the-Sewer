@@ -10,9 +10,11 @@ import Data.List (partition)
 import System.Random (StdGen, randomR, split)
 import WorldGen (generateMap)
 
+-- Ejecuta un paso de actualización completo del juego (wrapper puro).
 updateWorld :: Float -> GameState -> GameState
 updateWorld dt gs = execState (updateWorldM dt) gs
 
+-- Actualiza el estado según la fase del juego (menús, juego normal, jefe, etc).
 updateWorldM :: Float -> State GameState ()
 updateWorldM dt = do
   gs <- get
@@ -51,26 +53,31 @@ updateWorldM dt = do
 
 
 
--- Mover al jugador basado en las teclas presionadas
+-- Mueve al jugador según teclas presionadas, revisa colisiones y recoge ítems.
 movePlayerByKeys :: Float -> State GameState ()
 movePlayerByKeys dt = do
-  -- movimiento por ejes usando hitbox (X primero, luego Y)
   gs <- get
   let (u,d,l,r) = gsKeys gs
       p  = gsPlayer gs
       sp = pSpeed p * dt
       (x,y) = pPos p
+
       dx = (if r then 1 else 0) - (if l then 1 else 0)
       dy = (if u then 1 else 0) - (if d then 1 else 0)
+
       desiredX = x + dx * sp
       desiredY = y + dy * sp
+
       newTimer = max 0 (pAttackTimer p - dt)
 
-      hbAfterX  = hitboxFromCenter (desiredX, y) (pHalfW p) (pHalfH p)
-      hbAfterY  = hitboxFromCenter (x, desiredY) (pHalfW p) (pHalfH p)
-      hbAfterXY = hitboxFromCenter (desiredX, desiredY) (pHalfW p) (pHalfH p)
+      fixPos (px, py) = (px + 16, py - 16)      -- correccion para arreglar problema de colisiones
+
+      hbAfterX  = hitboxFromCenter (fixPos (desiredX, y)) (pHalfW p) (pHalfH p)
+      hbAfterY  = hitboxFromCenter (fixPos (x, desiredY)) (pHalfW p) (pHalfH p)
+      hbAfterXY = hitboxFromCenter (fixPos (desiredX, desiredY)) (pHalfW p) (pHalfH p)
 
       tiles = gsMap gs
+
 
   -- función local para aplicar movimiento y recoger items
   let applyMoveAndPick :: (Float,Float) -> State GameState ()
@@ -99,7 +106,7 @@ updateEnemies dt = do
   let enemies' = map (advanceEnemy dt gs) (gsEnemies gs)
   modify $ \s -> s { gsEnemies = enemies' }
 
--- avanzar un enemigo hacia el jugador
+-- Hace que un enemigo avance hacia el jugador si está a distancia adecuada.
 advanceEnemy :: Float -> GameState -> Enemy -> Enemy
 advanceEnemy dt gs e =
   let (px,py) = pPos (gsPlayer gs)
@@ -120,7 +127,7 @@ advanceEnemy dt gs e =
               else e
        else e
 
--- Los enemigos causan daño al jugador si están cerca
+-- Aplica daño del enemigo al jugador si están suficientemente cerca.
 enemyDealDamage :: Float -> State GameState ()
 enemyDealDamage dt = do
   gs <- get
@@ -130,7 +137,7 @@ enemyDealDamage dt = do
       phase' = if pHP p' <= 0 then GameOver else gsPhase gs 
   put gs { gsPlayer = p', gsPhase = phase'}  
 
--- Aplicar daño de un enemigo al jugador
+-- Calcula y aplica el daño de un enemigo específico al jugador.
 applyEnemyHit :: Float -> Player -> Enemy -> Player
 applyEnemyHit dt p e =
   let (px,py) = pPos p
@@ -142,7 +149,7 @@ applyEnemyHit dt p e =
         then playerTakeDamage p dmg
         else p
 
---genera un boss en el centro de la sala del boss (ultima sala)
+-- Crea al jefe final en el centro de la sala del boss o en una posición segura cercana.
 spawnBoss :: GameState -> Enemy
 spawnBoss gs =
   let -- El boss aparece en el centro de la sala del boss 
@@ -156,7 +163,7 @@ spawnBoss gs =
       , eAtk = 20
       }
 
--- Si el centro es pared, busca el vecino ms cercano que sea suelo
+-- Busca la casilla de suelo más cercana a una posición dada.
 encontrarSueloCercano :: TileMap -> Vec2 -> Vec2
 encontrarSueloCercano mapa (x, y)
     | isWalkable (x, y) mapa       = (x, y)           -- Centro OK
@@ -171,7 +178,7 @@ encontrarSueloCercano mapa (x, y)
     | otherwise = (x, y)  -- Fallback (no debería pasar con salas bien generadas)
 
 
--- Eliminar enemigos muertos
+-- Elimina enemigos muertos, genera ítems y determina si se debe invocar al jefe.
 cleanupDeadEnemies :: State GameState ()
 cleanupDeadEnemies = do
   gs <- get
@@ -235,6 +242,7 @@ cleanupDeadEnemies = do
         , gsRng     = genFinal
         }
 
+-- Genera los ítems que sueltan los enemigos al morir.
 spawnDrops :: [Enemy] -> StdGen -> ([(Vec2, Item)], StdGen)
 spawnDrops [] gen = ([], gen)
 spawnDrops (e:es) gen =
@@ -248,12 +256,12 @@ spawnDrops (e:es) gen =
       newItem = if r <= 30 then [ (ePos e, item) ] else []
   in (newItem ++ restItems, gen3)
 
--- Función de distancia para saber cuando el jugador esta cerca del item
+-- Calcula la distancia entre dos puntos 2D.
 distance :: Vec2 -> Vec2 -> Float
 distance (x1,y1) (x2,y2) =
   sqrt ((x1 - x2)^2 + (y1 - y2)^2)
 
--- Verificar si el jugador está cerca de la escalera y puede transicionar
+-- Comprueba si el jugador puede usar la escalera para cambiar de nivel.
 checkStairTransition :: State GameState ()
 checkStairTransition = do
   gs <- get
@@ -265,7 +273,7 @@ checkStairTransition = do
     let newState = avanzarNivel gs
     put newState
 
--- Avanzar al siguiente nivel
+-- Genera un nuevo mapa y reinicia el estado del juego al subir de nivel.
 avanzarNivel :: GameState -> GameState
 avanzarNivel gs =
   let nivel = nivelActual gs

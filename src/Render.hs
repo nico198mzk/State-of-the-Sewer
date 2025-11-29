@@ -4,14 +4,16 @@ module Render where
 import Graphics.Gloss
 import Types
 
+-- Calcula el desplazamiento de cámara para centrarla en el jugador.
 cameraOffset :: GameState -> (Float, Float)
 cameraOffset gs =
   let (px, py) = pPos (gsPlayer gs)
   in (-px, -py)
 
-
-
+-- Dibuja toda la escena según la fase actual del juego.
 render :: GameState -> Picture
+
+-- Dibuja texto con efecto de sombra/negrita multiplicando varias capas.
 boldText :: Color -> Float -> Float -> String -> Picture
 boldText col sx sy txt =
   pictures
@@ -93,6 +95,7 @@ render gs =
            , overlay
            ]
 
+-- Dibuja al jugador, su dirección y la espada si está atacando.
 renderPlayer :: GameState -> Picture
 renderPlayer gs =
   let p = gsPlayer gs
@@ -131,6 +134,7 @@ renderPlayer gs =
       
   in translate x y $ pictures [playerImg, directionIndicator, swordPic]
 
+-- Dibuja todos los enemigos (o al jefe si es fase BossFight).
 renderEnemies :: GameState -> Picture
 renderEnemies gs =
   pictures
@@ -145,6 +149,7 @@ renderEnemies gs =
     | Enemy (x,y) _ _ <- gsEnemies gs
     ]
 
+-- Dibuja los ítems presentes en el mapa.
 renderItems :: GameState -> Picture
 renderItems gs =
   pictures
@@ -154,11 +159,13 @@ renderItems gs =
     | ((x,y), item) <- gsItems gs
     ]
 
+-- Selecciona el sprite correcto para un ítem según su tipo.
 itemSprite :: Assets -> Item -> Picture
 itemSprite a (Heal _      ) = aItemFood  a
 itemSprite a (BoostAtk  _ ) = aItemAtk   a
 itemSprite a (BoostSpeed _) = aItemSpeed a
 
+-- Dibuja el mapa visible cerca del jugador y la escalera si está activa.
 renderMap :: GameState -> Picture
 renderMap gs =
   let (px, py) = pPos (gsPlayer gs)
@@ -182,7 +189,7 @@ renderMap gs =
                     else Blank  -- Invisible mientras el jefe está vivo
   in pictures (mapPics ++ [stairsPic])
 
--- Obtener los tiles correctos según el nivel actual
+-- Elige la lista de sprites de piso según el nivel actual.
 obtenerTilesDelNivel :: GameState -> [Picture]
 obtenerTilesDelNivel gs =
   let assets = gsAssets gs
@@ -192,7 +199,7 @@ obtenerTilesDelNivel gs =
        3 -> aTileFloors3 assets  -- Piso 3
        _ -> aTileFloors assets   -- Default: Piso 1
 
---Funcion para la barra de vida del jugador
+-- Dibuja la interfaz (vida, ataque, velocidad, nivel, escalera activa).
 renderHUD :: GameState -> Picture
 renderHUD gs = 
   let p      = gsPlayer gs
@@ -237,12 +244,13 @@ renderHUD gs =
               color yellow (text (nivelText ++ jefeDerr))
         ]
 
--- Función auxiliar segura para acceder a lista
+-- Acceso seguro a un índice de lista (evita crasheos por índices inválidos).
 safeIndex :: [a] -> Int -> Maybe a
 safeIndex xs n
   | n < 0 || n >= length xs = Nothing
   | otherwise               = Just (xs !! n)
 
+-- Selecciona el sprite apropiado para un tile (piso, pared, escalera).
 tilePic :: GameState -> Tile -> Picture
 tilePic _ Void = Blank  -- No renderizar tiles vacíos
 tilePic gs (FloorTile variant) =
