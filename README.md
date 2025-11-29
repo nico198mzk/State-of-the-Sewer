@@ -8,11 +8,13 @@ Un juego roguelike donde debes explorar las alcantarillas, enfrentarte a criatur
 
 ## Integrantes
 
-| Nombre              | Rol                  |
-| ------------------- | -------------------- |
-| [Nombre Integrante] | [Rol en el proyecto] |
-| [Nombre Integrante] | [Rol en el proyecto] |
-| [Nombre Integrante] | [Rol en el proyecto] |
+| Nombre            |
+| ----------------- |
+| Samantha Espinoza |
+| Sebastian Fuentes |
+| Martin Jaque      |
+| Felipe Reyes      |
+| Nicolás Sandoval  |
 
 ---
 
