@@ -1,0 +1,22 @@
+# --- Haskell & Stack (Lo más importante) ---
+.stack-work/
+stack.yaml.lock
+dist/
+dist-newstyle/
+
+# --- Archivos compilados intermedios ---
+*.o
+*.hi
+*.chi
+*.dyn_o
+*.dyn_hi
+
+# --- Archivos de sistema (Basura de Mac/Windows) ---
+.DS_Store
+Thumbs.db
+
+# --- Editores de texto (Basura de VS Code, Vim, etc) ---
+.vscode/
+*.swp
+*~
+*.bak
