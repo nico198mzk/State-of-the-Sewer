@@ -49,9 +49,17 @@ render gs =
     -- pantalla final (despues de terminar los 3 pisos)
     Victory ->
       pictures
-        [ color black $ rectangleSolid screenWidth screenHeight
-        , scale 1 1 $
-            aFinalScreen (gsAssets gs)
+        [ -- Fondo negro semitransparente
+          color (makeColorI 0 0 0 200) $ rectangleSolid screenWidth screenHeight
+        , -- Imagen de fondo (opcional)
+          scale 1 1 $ aFinalScreen (gsAssets gs)
+        , -- Texto de victoria
+          translate (-280) 50 $
+            boldText green 0.35 0.35 "ESCAPED!"
+        , translate (-320) 0 $
+            boldText yellow 0.25 0.25 "FLOORS CLEARED: 3/3"
+        , translate (-320) (-50) $
+            boldText white 0.2 0.2 "PRESS ESC TO QUIT"
         ]
 
     GameOver ->
@@ -182,15 +190,15 @@ renderMap gs =
                     else Blank  -- Invisible mientras el jefe está vivo
   in pictures (mapPics ++ [stairsPic])
 
--- Obtener los tiles correctos según el nivel actual
+-- Obtener los tiles correctos según el nivel actual (3 pisos)
 obtenerTilesDelNivel :: GameState -> [Picture]
 obtenerTilesDelNivel gs =
   let assets = gsAssets gs
   in case nivelActual gs of
-       1 -> aTileFloors assets   -- Piso 1
-       2 -> aTileFloors2 assets  -- Piso 2
-       3 -> aTileFloors3 assets  -- Piso 3
-       _ -> aTileFloors assets   -- Default: Piso 1
+       1 -> aTileFloors assets   -- Piso 1: tiles base
+       2 -> aTileFloors2 assets  -- Piso 2: tiles alternativos
+       3 -> aTileFloors3 assets  -- Piso 3: tiles finales
+       _ -> aTileFloors assets   -- Default
 
 --Funcion para la barra de vida del jugador
 renderHUD :: GameState -> Picture
