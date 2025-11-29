@@ -11,17 +11,17 @@ attackRange = 40
 woodSwordKnockback :: Float
 woodSwordKnockback = 40.0
 
--- Funciones puras de daño (sin cambios, usadas por funciones monádicas)
+-- Resta vida al enemigo.
 enemyTakeDamage :: Enemy -> Int -> Enemy
 enemyTakeDamage e dmg = e { eHP = eHP e - dmg }
 
+-- Resta vida al jugador sin dejar que baje de 0.
 playerTakeDamage :: Player -> Int -> Player
 playerTakeDamage p dmg =
   let newHP = pHP p - dmg
   in p { pHP = max 0 newHP }
 
--- Aplicar ataque del jugador a enemigos usando la mónada State
--- Ahora usa ataque direccional con knockback
+-- Aplica el ataque del jugador a todos los enemigos según dirección.
 applyPlayerAttack :: State GameState ()
 applyPlayerAttack = do
   gs <- get
@@ -33,7 +33,7 @@ applyPlayerAttack = do
       enemies' = map (hitEnemyDirectional posP facing atk tmap) (gsEnemies gs)
   modify $ \s -> s { gsEnemies = enemies' }
 
--- Función auxiliar pura para golpear un enemigo direccionalmente con knockback
+-- Determina si un enemigo está en rango y aplica daño y knockback.
 hitEnemyDirectional :: Vec2 -> Direction -> Int -> TileMap -> Enemy -> Enemy
 hitEnemyDirectional (px,py) facing atk tmap e =
   let (ex,ey) = ePos e
@@ -50,7 +50,7 @@ hitEnemyDirectional (px,py) facing atk tmap e =
         then applyKnockback (px,py) (enemyTakeDamage e atk) tmap
         else e
 
--- Aplicar knockback al enemigo alejándolo del jugador
+-- Empuja al enemigo lejos del jugador si la nueva posición es válida.
 applyKnockback :: Vec2 -> Enemy -> TileMap -> Enemy
 applyKnockback (px,py) e tmap =
   let (ex,ey) = ePos e

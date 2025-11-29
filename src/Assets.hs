@@ -9,12 +9,12 @@ import qualified Data.Vector.Storable as V
 import Graphics.Gloss
 import Types
 
--- Helper: convert DynamicImage → ImageRGBA8
+-- Convierte un DynamicImage a ImageRGBA8.
 toRGBA8 :: DynamicImage -> Image PixelRGBA8
 toRGBA8 (ImageRGBA8 img) = img
 toRGBA8 dyn               = convertRGBA8 dyn
 
--- Convert JuicyPixels ImageRGBA8 → Gloss Picture
+-- Convierte una imagen de JuicyPixels a un Picture de Gloss.
 fromJP :: DynamicImage -> Picture
 fromJP dyn =
   let img = toRGBA8 dyn
@@ -29,7 +29,7 @@ fromJP dyn =
         bs
         False
 
--- Load PNG safely
+-- Carga un PNG y devuelve un Picture; si falla, devuelve un cuadro rojo.
 loadPNG :: FilePath -> IO Picture
 loadPNG fp = do
   e <- readImage fp
@@ -37,7 +37,7 @@ loadPNG fp = do
     Left _     -> return (color red (rectangleSolid 32 32))
     Right dyn  -> return (fromJP dyn)
 
--- Load all required assets
+-- Carga todos los recursos gráficos del juego y construye el registro Assets.
 loadAssets :: IO Assets
 loadAssets = do
   p   <- loadPNG "assets/player.png"

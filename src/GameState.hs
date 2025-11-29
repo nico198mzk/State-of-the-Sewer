@@ -6,7 +6,7 @@ import WorldGen (generateMap)
 import System.Random (StdGen, split)
 
 
--- Modificado para aceptar posición inicial
+-- Crea un jugador inicial usando una posición dada.
 initPlayer :: Vec2 -> Player
 initPlayer startPos = Player
   { pPos         = startPos
@@ -23,7 +23,7 @@ initPlayer startPos = Player
   }
 
 
--- Modificado para usar posición inicial del mapa, enemigos y posición del boss room
+-- Construye el estado inicial completo del juego con mapa, jugador, enemigos y sala del boss.
 emptyState :: Assets -> TileMap -> Vec2 -> [Enemy] -> Vec2 -> StdGen -> GameState
 emptyState assets m startPos enemies bossRoomPos gen = 
   let (sx,sy) = startPos
@@ -43,7 +43,7 @@ emptyState assets m startPos enemies bossRoomPos gen =
     , jefeDerrotado  = False      -- Jefe no derrotado al inicio
     }
 
--- Permite reiniciar generando nuevo mapa 
+-- Reinicia el juego generando un nuevo mapa y restableciendo el estado.
 resetGame :: GameState -> GameState
 resetGame gs =
   let oldGen = gsRng gs

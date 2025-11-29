@@ -15,6 +15,7 @@ import Assets
 mossGreen :: Color
 mossGreen = makeColorI 20 45 20 255
 
+-- Punto de entrada del programa: genera el mapa, carga assets, crea el estado inicial y lanza el bucle principal de Gloss.
 main :: IO ()
 main = do
   -- Obtener semilla aleatoria real del sistema

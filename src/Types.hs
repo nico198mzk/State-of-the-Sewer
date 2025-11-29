@@ -1,4 +1,3 @@
--- src/Types.hs (arreglado por Kei)
 module Types where
 
 import Graphics.Gloss
@@ -8,25 +7,30 @@ screenWidth, screenHeight :: Float
 screenWidth  = 800
 screenHeight = 600
 
+-- Tamaño en píxeles de cada tile del mapa.
 tileSize :: Float
 tileSize = 32
 
+-- Par (Float, Float) representando una posición 2D.
 type Vec2 = (Float, Float)
+-- Rectángulo con posición (x,y) y tamaño (w,h).
 data Rect = Rect { rX :: Float, rY :: Float, rW :: Float, rH :: Float } deriving (Show, Eq)
 
+-- Construye un rectángulo (hitbox) centrado en una posición dada.
 hitboxFromCenter :: Vec2 -> Float -> Float -> Rect
 hitboxFromCenter = rectFromCenter
 
-isHitboxWalkable :: Rect -> TileMap -> Bool
-isHitboxWalkable = isRectWalkable
-
--- Reintroduzco initPlayerAtPos que algunos módulos esperan
+-- Reposiciona al jugador en un nuevo punto y reinicia temporizadores.
 initPlayerAtPos :: Vec2 -> Player -> Player
 initPlayerAtPos newPos p = p
   { pPos         = newPos
   , pCooldown    = 0
   , pAttackTimer = 0
   }
+
+-- Verifica si un hitbox rectangular puede caminarse (sin chocar con paredes).
+isHitboxWalkable :: Rect -> TileMap -> Bool
+isHitboxWalkable = isRectWalkable
 
 
 -- direccion para combate direccional
@@ -41,8 +45,10 @@ data Tile
   | StairDown
   deriving (Eq,Show)
 
+-- Matriz de tiles que constituye el mapa del juego.
 type TileMap = [[Tile]]
 
+-- Representa al jugador con posición, stats, velocidad y hitbox.
 data Player = Player
   { pPos         :: Vec2
   , pHP          :: Int
@@ -58,6 +64,7 @@ data Player = Player
   }
   deriving (Show)
 
+-- Representa un enemigo con posición, vida y ataque.
 data Enemy = Enemy
   { ePos :: Vec2
   , eHP  :: Int
@@ -65,12 +72,14 @@ data Enemy = Enemy
   }
   deriving (Show)
 
+-- Representa un enemigo con posición, vida y ataque.
 data Item
   = Heal Int
   | BoostAtk Int
   | BoostSpeed Float
   deriving (Show,Eq)
 
+-- Estados globales del juego (menús, jugando, jefe, victoria).
 data GamePhase
   = StartScreen
   | LoreScreen
@@ -81,6 +90,7 @@ data GamePhase
   | Victory
   deriving (Eq, Show)
 
+-- Todas las imágenes cargadas y usadas para dibujar el juego.
 data Assets = Assets
   { aPlayer       :: Picture
   , aEnemy        :: Picture
@@ -103,6 +113,7 @@ data Assets = Assets
 
 type KeysDown = (Bool, Bool, Bool, Bool)
 
+-- Estado completo del juego: jugador, enemigos, mapa, RNG, assets, etc.
 data GameState = GameState
   { gsPlayer       :: Player
   , gsEnemies      :: [Enemy]
@@ -119,21 +130,24 @@ data GameState = GameState
   , jefeDerrotado  :: Bool
   }
 
-
+-- Construye un Rect usando coordenadas de su centro y medios anchos/altos.
 rectFromCenter :: Vec2 -> Float -> Float -> Rect
 rectFromCenter (cx,cy) hw hh = Rect (cx - hw) (cy - hh) (2*hw) (2*hh)
 
+-- Devuelve todas las coordenadas de tiles que toca un rectángulo.
 tilesCoveredByRect :: Float -> Rect -> [(Int,Int)]
 tilesCoveredByRect tileSize (Rect x y w h) =
-  let left   = floor (x / tileSize)
-      right  = floor ((x + w - 1e-6) / tileSize)
-      top    = floor (-(y + h - 1e-6) / tileSize)
-      bottom = floor (-(y) / tileSize)
+  let eps = 1e-6
+      -- para X: incluimos una pequeña corrección en la parte izquierda
+      left   = floor ((x + eps) / tileSize)
+      right  = floor ((x + w - eps) / tileSize)
+      -- para Y usamos la convención del proyecto (ty = floor (-(py) / tileSize))
+      -- aplicamos eps de forma simétrica: restamos eps en el tope y sumamos eps en el fondo
+      top    = floor (-(y + h - eps) / tileSize)
+      bottom = floor (-(y + eps) / tileSize)
   in [ (tx,ty) | tx <- [left..right], ty <- [top..bottom] ]
 
-
-
-
+-- Comprueba si un rectángulo colisiona con paredes del mapa.
 isRectWalkable :: Rect -> TileMap -> Bool
 isRectWalkable rect tiles =
   let tilesIdx = tilesCoveredByRect tileSize rect
@@ -146,10 +160,11 @@ isRectWalkable rect tiles =
   in all tileOk tilesIdx
 
 -- VERSIÓN PUNTUAL (compatibilidad) para módulos que aún la usan (Combat, etc.)
+-- Comprueba si un punto (px, py) está en un tile caminable.
 isWalkable :: Vec2 -> TileMap -> Bool
 isWalkable (px,py) tiles =
-  let tx = floor (px / tileSize)
-      ty = floor (-(py) / tileSize)  -- convención Y del proyecto
+  let tx = floor ((px + tileSize / 2) / tileSize)
+      ty = floor ((-py + tileSize / 2) / tileSize)
       h  = length tiles
       w  = if null tiles then 0 else length (head tiles)
   in tx >= 0 && ty >= 0 && tx < w && ty < h && tileIsWalkable (tiles !! ty !! tx)

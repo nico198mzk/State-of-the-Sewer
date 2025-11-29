@@ -7,6 +7,7 @@ import Types
 import Combat
 import GameState (resetGame)
 
+-- Procesa eventos del teclado y actualiza el estado del juego (movimiento, ataques, pantallas, reinicio).
 handleInput :: Event -> GameState -> GameState
 handleInput (EventKey (SpecialKey KeyEnter) Down _ _) gs =
   case gsPhase gs of
@@ -48,14 +49,18 @@ handleInput (EventKey (SpecialKey KeySpace) Down _ _) gs =
 
 handleInput _ gs = gs
 
+-- Cambia el valor de la tecla "arriba" en el estado de teclas.
 setUp :: Bool -> GameState -> KeysDown
 setUp b gs    = let (_,d,l,r) = gsKeys gs in (b,d,l,r)
 
+-- Cambia el valor de la tecla "abajo" en el estado de teclas.
 setDown :: Bool -> GameState -> KeysDown
 setDown b gs  = let (u,_,l,r) = gsKeys gs in (u,b,l,r)
 
+-- Cambia el valor de la tecla "izquierda" en el estado de teclas.
 setLeft :: Bool -> GameState -> KeysDown
 setLeft b gs  = let (u,d,_,r) = gsKeys gs in (u,d,b,r)
 
+-- Cambia el valor de la tecla "derecha" en el estado de teclas.
 setRight :: Bool -> GameState -> KeysDown
 setRight b gs = let (u,d,l,_) = gsKeys gs in (u,d,l,b)

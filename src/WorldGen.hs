@@ -21,7 +21,7 @@ data Rect = Rect
 center :: Rect -> (Int, Int)
 center r = (rectX r + rectW r `div` 2, rectY r + rectH r `div` 2)
 
--- Verifica si dos habitaciones se superponen (con margen de 2 para pasillos)
+-- Determina si dos salas se superponen (incluye margen para corredores).
 overlaps :: Rect -> Rect -> Bool
 overlaps r1 r2 =
   let x1 = rectX r1 - 2
@@ -34,7 +34,7 @@ overlaps r1 r2 =
       y4 = rectY r2 + rectH r2 + 2
   in not (x2 < x3 || x4 < x1 || y2 < y3 || y4 < y1)
 
--- Calcula la distancia entre dos salas
+-- Calcula la distancia entre los centros de dos salas.
 roomDistance :: Rect -> Rect -> Float
 roomDistance r1 r2 =
   let (x1, y1) = center r1
@@ -43,7 +43,7 @@ roomDistance r1 r2 =
       dy = fromIntegral (y2 - y1)
   in sqrt (dx * dx + dy * dy)
 
--- Genera un mapa con salas, pasillos y enemigos
+-- Genera un mapa completo con salas, pasillos, enemigos y sala del boss.
 -- Devuelve: (mapa, posición inicial, enemigos, posición sala del boss)
 generateMap :: StdGen -> (TileMap, Vec2, [Enemy], Vec2)
 generateMap gen =
@@ -72,13 +72,13 @@ generateMap gen =
       
   in (finalMap, startPos, enemies, bossRoomPos)
 
--- Convierte posición de sala a coordenadas del mundo
+-- Convierte coordenadas de sala (tiles) a coordenadas del mundo (pixeles).
 roomToWorldPos :: Rect -> Vec2
 roomToWorldPos room =
   let (cx, cy) = center room
   in (fromIntegral cx * tileSize, -(fromIntegral cy * tileSize))
 
--- Selecciona variante de suelo 
+-- Escoge una variante de tile de piso según probabilidad.
 getWeightedFloorVariant :: StdGen -> (Int, StdGen)
 getWeightedFloorVariant gen =
   let (roll, gen') = randomR (1, 100) gen :: (Int, StdGen)
@@ -88,11 +88,7 @@ getWeightedFloorVariant gen =
               | otherwise   = 3  -- 5% probabilidad
   in (variant, gen')
 
--- ============================================================================
--- GENERACIÓN DE ENEMIGOS
--- ============================================================================
-
--- Genera enemigos en múltiples salas
+-- Genera enemigos dentro de varias salas.
 spawnEnemiesInRooms :: [Rect] -> StdGen -> [Enemy]
 spawnEnemiesInRooms [] _ = []
 spawnEnemiesInRooms (room:rest) gen =
@@ -100,7 +96,7 @@ spawnEnemiesInRooms (room:rest) gen =
       enemiesInRoom = spawnEnemiesInRoom room gen1
   in enemiesInRoom ++ spawnEnemiesInRooms rest gen2
 
--- Genera enemigos en una sala específica
+-- Genera enemigos dentro de una sala según su tamaño.
 spawnEnemiesInRoom :: Rect -> StdGen -> [Enemy]
 spawnEnemiesInRoom room gen =
   let area = rectW room * rectH room
@@ -108,7 +104,7 @@ spawnEnemiesInRoom room gen =
       (enemies, _) = generateNEnemies count room gen
   in enemies
 
--- Genera N enemigos con posiciones y atributos aleatorios
+-- Genera N enemigos dentro de una sala.
 generateNEnemies :: Int -> Rect -> StdGen -> ([Enemy], StdGen)
 generateNEnemies 0 _ gen = ([], gen)
 generateNEnemies n room gen =
@@ -116,7 +112,7 @@ generateNEnemies n room gen =
       (rest, gen2) = generateNEnemies (n - 1) room gen1
   in (enemy : rest, gen2)
 
--- Genera un enemigo con posición y atributos aleatorios dentro de la sala
+-- Crea un enemigo con posición y atributos aleatorios en una sala.
 generateOneEnemy :: Rect -> StdGen -> (Enemy, StdGen)
 generateOneEnemy room gen =
   let -- Posición aleatoria dentro de la sala (con margen de 1 tile)
@@ -139,11 +135,11 @@ generateOneEnemy room gen =
   in (Enemy (worldX, worldY) hp atk, gen4)
 
 
--- Crea un mapa lleno de Void
+-- Crea un mapa inicial relleno completamente de Void.
 createVoidMap :: TileMap
 createVoidMap = replicate mapHeight (replicate mapWidth Void)
 
--- Genera una lista de habitaciones sin superposición y con distancia controlada
+-- Genera una lista de salas sin superposición y con distancia controlada.
 generateRooms :: StdGen -> [Rect] -> Int -> ([Rect], StdGen)
 generateRooms gen rooms 0 = (rooms, gen)
 generateRooms gen rooms n =
@@ -157,7 +153,7 @@ generateRooms gen rooms n =
               then generateRooms gen' rooms (n - 1)
               else (rooms, gen')
 
--- Genera una habitación aleatoria cerca de la última sala
+-- Genera una nueva sala cerca de la última, o centrada si es la primera.
 generateRoom :: StdGen -> [Rect] -> (Rect, StdGen)
 generateRoom gen rooms =
   let (w, gen1) = randomR (6, 12) gen
@@ -176,7 +172,7 @@ generateRoom gen rooms =
                             in (x0, y0, g2)
   in (Rect x y w h, gen3)
 
--- Talla una habitación en el mapa (la rellena con suelo)
+-- Rellena una sala en el mapa convirtiendo Void en tiles de piso.
 carveRoom :: TileMap -> Rect -> TileMap
 carveRoom tmap room =
   let x1 = rectX room
@@ -195,7 +191,7 @@ carveRoom tmap room =
           else (cells ++ [tile], gCell)
   in finalMap
 
--- Conecta todas las habitaciones con pasillos anchos
+-- Conecta todas las salas mediante pasillos anchos.
 connectRooms :: TileMap -> [Rect] -> StdGen -> (TileMap, StdGen)
 connectRooms tmap [] gen = (tmap, gen)
 connectRooms tmap [_] gen = (tmap, gen)
@@ -203,7 +199,7 @@ connectRooms tmap (r1:r2:rest) gen =
   let (tmap', gen') = createWideCorridor tmap r1 r2 gen
   in connectRooms tmap' (r2:rest) gen'
 
--- Crea un pasillo ancho (2 tiles) entre dos habitaciones
+-- Conecta dos salas con un pasillo de 2 tiles de grosor.
 createWideCorridor :: TileMap -> Rect -> Rect -> StdGen -> (TileMap, StdGen)
 createWideCorridor tmap r1 r2 gen =
   let (x1, y1) = center r1
@@ -217,7 +213,7 @@ createWideCorridor tmap r1 r2 gen =
                  else carveWideHorizontalCorridor tmap' x1 x2 y2
   in (tmap'', gen')
 
--- Talla un pasillo horizontal ancho (2 tiles de grosor)
+-- Crea un pasillo horizontal de 2 tiles.
 carveWideHorizontalCorridor :: TileMap -> Int -> Int -> Int -> TileMap
 carveWideHorizontalCorridor tmap x1 x2 y =
   let xStart = min x1 x2
@@ -234,7 +230,7 @@ carveWideHorizontalCorridor tmap x1 x2 y =
           else (cells ++ [tile], gCell)
   in finalMap
 
--- Talla un pasillo vertical ancho (2 tiles de grosor)
+-- Crea un pasillo vertical de 2 tiles.
 carveWideVerticalCorridor :: TileMap -> Int -> Int -> Int -> TileMap
 carveWideVerticalCorridor tmap y1 y2 x =
   let yStart = min y1 y2
@@ -251,7 +247,7 @@ carveWideVerticalCorridor tmap y1 y2 x =
           else (cells ++ [tile], gCell)
   in finalMap
 
--- Auto-tiling: convierte Void en muros si están adyacentes a suelo
+-- Convierte Void en muros cuando están junto a tiles de piso.
 autoTileWalls :: TileMap -> StdGen -> TileMap
 autoTileWalls tmap gen =
   let (finalMap, _) = foldl processRow ([], gen) (zip [0..] tmap)
@@ -269,7 +265,7 @@ autoTileWalls tmap gen =
                   else (cells ++ [Void], g)
         _ -> (cells ++ [tile], g)
 
--- Verifica si una celda tiene al menos un vecino de suelo
+-- Comprueba si una celda de Void tiene suelo al lado (para auto-tiling).
 hasFloorNeighbor :: Int -> Int -> TileMap -> Bool
 hasFloorNeighbor x y tmap =
   let neighbors = [ (x-1, y), (x+1, y), (x, y-1), (x, y+1) ]
