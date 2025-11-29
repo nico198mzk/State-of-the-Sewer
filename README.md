@@ -1,4 +1,4 @@
-# 🐀 Haski-RPG: State of the Sewer
+# 🐀 Haski-RPG: State of the Sewer 🐀
 
 > **Videojuego RPG de acción tipo Dungeon Crawler desarrollado en Haskell usando la librería Gloss**
 
